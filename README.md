@@ -12,6 +12,7 @@
 - **C++ Compiler:** clang 19 (Though any other C++ compiler which supports the C++20 feature set should also work)
 - **CMake:** 3.31 or higher
 - **Git:** For cloning the repository
+- **gtest:** (Optional) If -DBUILD_TESTS=ON you will require the dev/devel dependency of gtest
 
 ## Building the project (in source)
 ```
