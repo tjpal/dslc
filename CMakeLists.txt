@@ -4,7 +4,7 @@ project(dslc VERSION 1.0)
 
 option(BUILD_TESTS "Build the tests" OFF)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_subdirectory(scanner)
@@ -21,3 +21,6 @@ if(BUILD_TESTS)
 
     add_test(NAME DefaultTests COMMAND dslc-test)
 endif (BUILD_TESTS)
+
+include(cmake/clang-format.cmake)
+add_clang_format_target(format scanner dslc tests)
