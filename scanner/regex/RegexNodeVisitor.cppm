@@ -1,5 +1,3 @@
-module;
-
 export module Scanner.Regex:RegexNodeVisitor;
 
 namespace scanner {
@@ -9,7 +7,7 @@ namespace scanner {
     export class Kleene;
     export class Union;
 
-    class RegexNodeVisitor {
+    export class RegexNodeVisitor {
       public:
         virtual ~RegexNodeVisitor() = default;
 

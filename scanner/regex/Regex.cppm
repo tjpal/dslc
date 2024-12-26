@@ -1,8 +1,8 @@
 export module Scanner.Regex;
 
-import :RegexNodeVisitor;
-import :Leaf;
-import :Concatenation;
-import :Kleene;
-import :Optional;
-import :Union;
+export import :Leaf;
+export import :Concatenation;
+export import :Kleene;
+export import :Optional;
+export import :Union;
+export import :RegexNodeVisitor;
