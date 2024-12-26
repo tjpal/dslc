@@ -10,7 +10,7 @@ import Scanner.Regex;
 
 namespace scanner {
     class ThompsonConstructionVisitor : public RegexNodeVisitor {
-      public:
+    public:
         void visit(Leaf &leaf) override {
             auto start = makeNode();
             auto end = makeNode();
@@ -32,7 +32,6 @@ namespace scanner {
 
             nfaStack.push(NFA(left.getStartNode(), mergeNodes(left, right, {}), right.getAcceptingNodes()));
         }
-
 
         void visit(Kleene &kleene) override {
             std::ignore = kleene;
@@ -91,7 +90,7 @@ namespace scanner {
             return nfaStack.top();
         }
 
-      private:
+    private:
         inline std::shared_ptr<NFANode> makeNode() { return std::make_shared<NFANode>(); }
 
         std::shared_ptr<NFANode> uniqueAcceptingNode(const NFA &nfa) {

@@ -8,7 +8,7 @@ import :RegexNodeVisitor;
 
 namespace scanner {
     export class Concatenation final : public RegexNode {
-      public:
+    public:
         explicit Concatenation(const std::shared_ptr<RegexNode> &left, const std::shared_ptr<RegexNode> &right)
             : left(left), right(right) {}
 
@@ -17,7 +17,7 @@ namespace scanner {
 
         void accept(RegexNodeVisitor &visitor) override { visitor.visit(*this); }
 
-      private:
+    private:
         std::shared_ptr<RegexNode> left;
         std::shared_ptr<RegexNode> right;
     };

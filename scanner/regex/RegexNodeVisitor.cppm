@@ -8,7 +8,7 @@ namespace scanner {
     export class Union;
 
     export class RegexNodeVisitor {
-      public:
+    public:
         virtual ~RegexNodeVisitor() = default;
 
         virtual void visit(Optional &node) {}

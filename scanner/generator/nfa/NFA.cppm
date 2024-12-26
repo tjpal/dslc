@@ -10,7 +10,7 @@ export import :NFANode;
 
 namespace scanner {
     export class NFA {
-      public:
+    public:
         NFA() = default;
         NFA(const std::shared_ptr<NFANode> &startNode, const std::vector<std::shared_ptr<NFANode>> &nodes,
             const std::vector<std::shared_ptr<NFANode>> &acceptingNodes)
@@ -24,7 +24,7 @@ namespace scanner {
         const std::vector<std::shared_ptr<NFANode>> &getNodes() const { return nodes; }
         const std::vector<std::shared_ptr<NFANode>> &getAcceptingNodes() const { return acceptingNodes; }
 
-        auto operator=(NFA &&other) noexcept -> NFA& {
+        auto operator=(NFA &&other) noexcept -> NFA & {
             startNode = std::move(other.startNode);
             nodes = std::move(other.nodes);
             acceptingNodes = std::move(other.acceptingNodes);
@@ -32,7 +32,7 @@ namespace scanner {
             return *this;
         }
 
-      private:
+    private:
         std::shared_ptr<NFANode> startNode;
         std::vector<std::shared_ptr<NFANode>> nodes;
         std::vector<std::shared_ptr<NFANode>> acceptingNodes;

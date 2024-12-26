@@ -4,7 +4,7 @@ namespace scanner {
     class RegexNodeVisitor;
 
     export class RegexNode {
-      public:
+    public:
         virtual ~RegexNode() = default;
 
         virtual void accept(RegexNodeVisitor &visitor) = 0;

@@ -8,14 +8,14 @@ import :RegexNodeVisitor;
 
 namespace scanner {
     export class Leaf final : public RegexNode {
-      public:
+    public:
         void setCharacters(const std::vector<char> &characters) { this->characters = characters; }
 
         std::vector<char> getCharacters() { return characters; }
 
         void accept(RegexNodeVisitor &visitor) override { visitor.visit(*this); }
 
-      private:
+    private:
         std::vector<char> characters;
     };
 } // namespace scanner
