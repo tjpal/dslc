@@ -1,9 +1,9 @@
 module;
 #include <memory>
 
-export module Scanner.Optional;
+export module Scanner.Regex:Optional;
 
-import Scanner.RegexNode;
+import :RegexNode;
 
 namespace scanner {
     export class Optional {

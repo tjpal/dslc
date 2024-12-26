@@ -1,9 +1,9 @@
 module;
 #include <memory>
 
-export module Scanner.Concatenation;
+export module Scanner.Regex:Concatenation;
 
-import Scanner.RegexNode;
+import :RegexNode;
 
 namespace scanner {
     export class Concatenation : public RegexNode {

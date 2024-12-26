@@ -1,9 +1,9 @@
 module;
 #include <vector>
 
-export module Scanner.Leaf;
+export module Scanner.Regex:Leaf;
 
-import Scanner.RegexNode;
+import :RegexNode;
 
 namespace scanner {
     export class Leaf {

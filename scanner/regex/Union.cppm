@@ -1,9 +1,9 @@
 module;
 #include <memory>
 
-export module Scanner.Union;
+export module Scanner.Regex:Union;
 
-import Scanner.RegexNode;
+import :RegexNode;
 
 namespace scanner {
     export class Union {

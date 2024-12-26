@@ -1,9 +1,9 @@
 module;
 #include <memory>
 
-export module Scanner.Kleene;
+export module Scanner.Regex:Kleene;
 
-import Scanner.RegexNode;
+import :RegexNode;
 
 namespace scanner {
     export class Kleene {

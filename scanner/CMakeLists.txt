@@ -10,6 +10,7 @@ add_library(scanner STATIC)
 target_sources(
     scanner PUBLIC
     FILE_SET cxx_modules TYPE CXX_MODULES FILES
+    regex/Regex.cppm
     regex/RegexNode.cppm
     regex/Concatenation.cppm
     regex/Kleene.cppm

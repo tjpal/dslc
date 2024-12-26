@@ -1,3 +1,3 @@
-import Scanner.RegexNode;
+import Scanner.Regex;
 
 int main() { return 0; }

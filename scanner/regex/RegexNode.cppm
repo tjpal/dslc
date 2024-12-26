@@ -1,4 +1,4 @@
-export module Scanner.RegexNode;
+export module Scanner.Regex:RegexNode;
 
 namespace scanner {
     export class RegexNode {
