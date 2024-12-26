@@ -16,4 +16,7 @@ target_sources(
     regex/Leaf.cppm
     regex/Optional.cppm
     regex/Union.cppm
+    generator/nfa/NFANode.cppm
+    generator/nfa/NFAEdge.cppm
+    generator/nfa/NFA.cppm
 )
