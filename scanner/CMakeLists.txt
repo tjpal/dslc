@@ -21,4 +21,5 @@ target_sources(
     generator/nfa/NFANode.cppm
     generator/nfa/NFAEdge.cppm
     generator/nfa/NFA.cppm
+    generator/thompson-construction/ThompsonConstructionVisitor.cppm
 )
