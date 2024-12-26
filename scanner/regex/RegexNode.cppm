@@ -7,6 +7,6 @@ namespace scanner {
     public:
         virtual ~RegexNode() = default;
 
-        virtual void accept(RegexNodeVisitor &visitor) = 0;
+        virtual void accept(RegexNodeVisitor& visitor) = 0;
     };
 } // namespace scanner

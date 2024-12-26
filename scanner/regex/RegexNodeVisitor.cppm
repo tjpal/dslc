@@ -11,10 +11,10 @@ namespace scanner {
     public:
         virtual ~RegexNodeVisitor() = default;
 
-        virtual void visit(Optional &node) {}
-        virtual void visit(Leaf &node) {}
-        virtual void visit(Concatenation &node) {}
-        virtual void visit(Kleene &node) {}
-        virtual void visit(Union &node) {}
+        virtual void visit(Optional& node) {}
+        virtual void visit(Leaf& node) {}
+        virtual void visit(Concatenation& node) {}
+        virtual void visit(Kleene& node) {}
+        virtual void visit(Union& node) {}
     };
 } // namespace scanner

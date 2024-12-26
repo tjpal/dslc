@@ -8,3 +8,5 @@ AllowShortIfStatementsOnASingleLine: false
 ColumnLimit: 120
 IndentCaseLabels: true
 NamespaceIndentation: All
+PointerAlignment: Left
+ReferenceAlignment: Pointer

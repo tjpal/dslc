@@ -9,8 +9,8 @@ namespace scanner {
 
     export class NFAEdge {
     public:
-        explicit NFAEdge(const std::shared_ptr<NFANode> &endpoint) : epsilonTransition(true), endpoint(endpoint) {}
-        NFAEdge(const std::shared_ptr<NFANode> &endpoint, char character) : endpoint(endpoint), character(character) {}
+        explicit NFAEdge(const std::shared_ptr<NFANode>& endpoint) : epsilonTransition(true), endpoint(endpoint) {}
+        NFAEdge(const std::shared_ptr<NFANode>& endpoint, char character) : endpoint(endpoint), character(character) {}
 
         bool isEpsilonTransition() const { return epsilonTransition; }
         char getCharacter() const { return character; }

@@ -13,7 +13,7 @@ namespace scanner {
         void setAcceptingStateID(std::uint32_t acceptingStateID) { this->acceptingStateID = acceptingStateID; }
         std::uint32_t getAcceptingStateID() { return acceptingStateID; }
 
-        void addEdge(const NFAEdge &edge) { edges.push_back(edge); }
+        void addEdge(const NFAEdge& edge) { edges.push_back(edge); }
         std::vector<NFAEdge> getEdges() const { return edges; }
 
     private:

@@ -11,7 +11,7 @@ import Scanner.Regex;
 namespace scanner {
     class ThompsonConstructionVisitor : public RegexNodeVisitor {
     public:
-        void visit(Leaf &leaf) override {
+        void visit(Leaf& leaf) override {
             auto start = makeNode();
             auto end = makeNode();
 
@@ -22,7 +22,7 @@ namespace scanner {
             nfaStack.push(NFA(start, {start, end}, {end}));
         }
 
-        void visit(Concatenation &concatenation) override {
+        void visit(Concatenation& concatenation) override {
             std::ignore = concatenation;
 
             auto left = popNFA();
@@ -33,7 +33,7 @@ namespace scanner {
             nfaStack.push(NFA(left.getStartNode(), mergeNodes(left, right, {}), right.getAcceptingNodes()));
         }
 
-        void visit(Kleene &kleene) override {
+        void visit(Kleene& kleene) override {
             std::ignore = kleene;
 
             auto child = popNFA();
@@ -50,7 +50,7 @@ namespace scanner {
             nfaStack.push(NFA(start, mergeNodes(child, NFA(), {start, end}), {end}));
         }
 
-        void visit(Optional &optional) override {
+        void visit(Optional& optional) override {
             std::ignore = optional;
             NFA child = popNFA();
 
@@ -62,7 +62,7 @@ namespace scanner {
             nfaStack.push(std::move(child));
         }
 
-        void visit(Union &unionElement) override {
+        void visit(Union& unionElement) override {
             std::ignore = unionElement;
 
             auto left = popNFA();
@@ -82,7 +82,7 @@ namespace scanner {
             nfaStack.push(NFA(start, mergeNodes(left, right, {start, end}), {end}));
         }
 
-        const NFA &getConstructedNFA() const {
+        const NFA& getConstructedNFA() const {
             if (nfaStack.size() != 1) {
                 throw std::runtime_error("No unique final NFA found");
             }
@@ -93,7 +93,7 @@ namespace scanner {
     private:
         inline std::shared_ptr<NFANode> makeNode() { return std::make_shared<NFANode>(); }
 
-        std::shared_ptr<NFANode> uniqueAcceptingNode(const NFA &nfa) {
+        std::shared_ptr<NFANode> uniqueAcceptingNode(const NFA& nfa) {
             if (nfa.getAcceptingNodes().size() != 1) {
                 throw std::runtime_error("Accepting node is not unique");
             }
@@ -112,8 +112,8 @@ namespace scanner {
             return nfa;
         }
 
-        std::vector<std::shared_ptr<NFANode>> mergeNodes(const NFA &first, const NFA &second,
-                                                         const std::vector<std::shared_ptr<NFANode>> &other) {
+        std::vector<std::shared_ptr<NFANode>> mergeNodes(const NFA& first, const NFA& second,
+                                                         const std::vector<std::shared_ptr<NFANode>>& other) {
             std::vector<std::shared_ptr<NFANode>> result;
 
             result.reserve(first.getNodes().size() + second.getNodes().size() + other.size());
