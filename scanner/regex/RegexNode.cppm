@@ -1,7 +1,7 @@
 export module Scanner.Regex:RegexNode;
 
 namespace scanner {
-    class RegexNodeVisitor;
+    export class RegexNodeVisitor;
 
     export class RegexNode {
     public:

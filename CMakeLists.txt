@@ -16,8 +16,18 @@ if(BUILD_TESTS)
     enable_testing()
     find_package(GTest REQUIRED)
 
-    add_executable(dslc-test tests/main_test.cpp)
-    target_link_libraries(dslc-test PRIVATE GTest::GTest GTest::Main)
+    add_executable(
+        dslc-test
+        tests/scanner/generator/nfa-dfa-conversion/StateSetTest.cpp
+    )
+
+    target_link_libraries(
+        dslc-test PRIVATE
+        scanner
+        GTest::Main
+        GTest::GTest
+        stdc++
+    )
 
     add_test(NAME DefaultTests COMMAND dslc-test)
 endif (BUILD_TESTS)

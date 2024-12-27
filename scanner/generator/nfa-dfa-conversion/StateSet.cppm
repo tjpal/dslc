@@ -2,7 +2,6 @@ module;
 
 #include <algorithm>
 #include <cstdint>
-#include <exception>
 #include <stdexcept>
 #include <unordered_set>
 #include <vector>
@@ -10,9 +9,10 @@ module;
 export module Scanner.StateSet;
 
 namespace scanner {
-    class StateSet {
+    export class StateSet {
     public:
         StateSet() = default;
+        StateSet(const std::initializer_list<std::uint32_t>& states) : states(states) {}
 
         void addState(std::uint32_t state) {
             if (isLocked) {

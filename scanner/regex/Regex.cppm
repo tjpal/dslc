@@ -6,3 +6,4 @@ export import :Kleene;
 export import :Optional;
 export import :Union;
 export import :RegexNodeVisitor;
+export import :RegexNode;
