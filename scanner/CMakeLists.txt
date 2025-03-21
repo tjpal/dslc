@@ -23,4 +23,5 @@ target_sources(
     generator/nfa/NFA.cppm
     generator/thompson-construction/ThompsonConstructionVisitor.cppm
     generator/nfa-dfa-conversion/StateSet.cppm
+    generator/nfa-dfa-conversion/eClosure.cppm
 )

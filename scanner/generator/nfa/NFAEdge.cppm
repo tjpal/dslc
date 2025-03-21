@@ -1,5 +1,6 @@
 module;
 
+#include <cstdint>
 #include <memory>
 
 export module Scanner.NFA:NFAEdge;
@@ -9,17 +10,16 @@ namespace scanner {
 
     export class NFAEdge {
     public:
-        explicit NFAEdge(const std::shared_ptr<NFANode>& endpoint) : epsilonTransition(true), endpoint(endpoint) {}
-        NFAEdge(const std::shared_ptr<NFANode>& endpoint, char character) : endpoint(endpoint), character(character) {}
+        explicit NFAEdge(std::uint32_t endpointID) : endpointID(endpointID) {}
+        NFAEdge(std::uint32_t endpointID, char character) : endpointID(endpointID), character(character) {}
 
         bool isEpsilonTransition() const { return epsilonTransition; }
         char getCharacter() const { return character; }
-        std::shared_ptr<NFANode> getEndpoint() const { return endpoint.lock(); }
+        std::uint32_t getEndpointID() const { return endpointID; }
 
     private:
         bool epsilonTransition = false;
         char character = '\0';
-
-        std::weak_ptr<NFANode> endpoint;
+        std::uint32_t endpointID = 0;
     };
 } // namespace scanner
