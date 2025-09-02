@@ -1,6 +1,6 @@
 module;
 
-#include <memory>
+#include <ranges>
 #include <vector>
 
 export module Scanner.NFA;
@@ -12,22 +12,20 @@ namespace scanner {
     export class NFA {
     public:
         NFA() = default;
-        NFA(NFA&& other) noexcept :  nodes(std::move(other.nodes)) {
+        NFA(NFA&& other) noexcept : nodes(std::move(other.nodes)) {
         }
 
         void addNode(NFANode&& node) {
             nodes.push_back(std::move(node));
         }
 
-        void startStartNode(std::uint32_t startNodeIndex) {
-            this->startNodeIndex = startNodeIndex;
-        }
-
         NFANode& getNodeByID(std::uint32_t id) {
-            if (id >= nodes.size()) {
-                throw std::out_of_range("Node ID out of range");
-            }
-            return nodes[id];
+            const auto it = std::ranges::find_if(nodes, [id](const NFANode& node) { return node.getNodeID() == id; } );
+
+            if (it == nodes.end())
+                throw std::out_of_range("NFA node does not exist");
+
+            return *it;
         }
 
         auto operator=(NFA&& other) noexcept -> NFA& {
@@ -36,7 +34,6 @@ namespace scanner {
         }
 
     private:
-        std::uint32_t startNodeIndex = 0;
         std::vector<NFANode> nodes;
     };
 } // namespace scanner

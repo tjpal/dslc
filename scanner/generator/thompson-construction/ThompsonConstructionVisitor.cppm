@@ -2,6 +2,7 @@ module;
 
 #include <memory>
 #include <stack>
+#include <vector>
 
 export module Scanner.ThompsonConstructionVisitor;
 
