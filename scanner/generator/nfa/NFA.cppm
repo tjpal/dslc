@@ -12,7 +12,11 @@ namespace scanner {
     export class NFA {
     public:
         NFA() = default;
-        NFA(NFA&& other) noexcept : nodes(std::move(other.nodes)) {
+        NFA(NFA&& other) noexcept = default;
+        NFA(const NFANode& startNode, std::vector<NFANode>&& nodes, const NFANode& acceptingNode) noexcept :
+            nodes(std::move(nodes)),
+            startNodeID(startNode.getNodeID()),
+            acceptingNodeID(acceptingNode.getNodeID()) {
         }
 
         void addNode(NFANode&& node) {
@@ -28,12 +32,12 @@ namespace scanner {
             return *it;
         }
 
-        auto operator=(NFA&& other) noexcept -> NFA& {
-            nodes = std::move(other.nodes);
-            return *this;
-        }
+        NFA& operator=(NFA&& other) noexcept = default;
 
     private:
         std::vector<NFANode> nodes;
+
+        std::uint32_t startNodeID = 0;
+        std::uint32_t acceptingNodeID = 0;
     };
 } // namespace scanner

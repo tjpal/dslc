@@ -10,17 +10,15 @@ import Scanner.NFA;
 import Scanner.Regex;
 
 namespace scanner {
-    class ThompsonConstructionVisitor : public RegexNodeVisitor {
+    class ThompsonConstructionVisitor final : public RegexNodeVisitor {
     public:
         void visit(Leaf& leaf) override {
-            auto start = makeNode();
-            auto end = makeNode();
+            auto start = NFANode();
+            auto end = NFANode();
 
-            for (char c : leaf.getCharacters()) {
-                start->addEdge(NFAEdge(end, c));
-            }
+            start.addEdge(NFAEdge(end.getNodeID(), leaf.getCharacters()));
 
-            nfaStack.push(NFA(start, {start, end}, {end}));
+            nfaStack.push(NFA(start, {std::move(start), std::move(end)}, end));
         }
 
         void visit(Concatenation& concatenation) override {
@@ -92,8 +90,6 @@ namespace scanner {
         }
 
     private:
-        inline std::shared_ptr<NFANode> makeNode() { return std::make_shared<NFANode>(); }
-
         std::shared_ptr<NFANode> uniqueAcceptingNode(const NFA& nfa) {
             if (nfa.getAcceptingNodes().size() != 1) {
                 throw std::runtime_error("Accepting node is not unique");
