@@ -24,9 +24,18 @@ namespace scanner {
         }
 
         NFANode& getNodeByID(std::uint32_t id) {
-            const auto it = std::ranges::find_if(nodes, [id](const NFANode& node) { return node.getNodeID() == id; } );
+            const auto it = std::ranges::find_if(nodes, [id](const NFANode& node) { return node.getNodeID() == id; });
 
             if (it == nodes.end())
+                throw std::out_of_range("NFA node does not exist");
+
+            return *it;
+        }
+
+        const NFANode& getNodeByID(std::uint32_t id) const {
+            const auto it = std::ranges::find_if(nodes, [id](const NFANode& node) { return node.getNodeID() == id; });
+
+            if (it == nodes.cend())
                 throw std::out_of_range("NFA node does not exist");
 
             return *it;
@@ -36,11 +45,19 @@ namespace scanner {
             return getNodeByID(acceptingNodeID);
         }
 
+        const NFANode& getAcceptingNode() const {
+            return getNodeByID(acceptingNodeID);
+        }
+
         std::uint32_t getAcceptingNodeID() const {
             return acceptingNodeID;
         }
 
         NFANode& getStartNode() {
+            return getNodeByID(startNodeID);
+        }
+
+        const NFANode& getStartNode() const {
             return getNodeByID(startNodeID);
         }
 
