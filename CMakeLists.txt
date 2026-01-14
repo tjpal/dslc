@@ -9,11 +9,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_subdirectory(scanner)
 
-add_executable(dslc dslc/dslc_main.cpp)
-target_link_libraries(dslc PRIVATE libscanner)
-
-add_executable(dslc-scanner dslc/scanner_main.cpp)
-target_link_libraries(dslc-scanner PRIVATE libscanner)
+add_executable(dslc dslc/main.cpp)
+target_link_libraries(dslc PRIVATE scanner)
 
 if(BUILD_TESTS)
     add_subdirectory(tests)

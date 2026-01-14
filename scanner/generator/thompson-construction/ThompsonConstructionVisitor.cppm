@@ -3,7 +3,6 @@ module;
 #include <memory>
 #include <stack>
 #include <vector>
-#include <stdexcept>
 
 export module Scanner.ThompsonConstructionVisitor;
 
@@ -11,27 +10,22 @@ import Scanner.NFA;
 import Scanner.Regex;
 
 namespace scanner {
-    export class ThompsonConstructionVisitor final : public RegexNodeVisitor {
+    class ThompsonConstructionVisitor final : public RegexNodeVisitor {
     public:
         void visit(Leaf& leaf) override {
             auto start = NFANode();
             auto end = NFANode();
 
-            if (leaf.isWildcard()) {
-                start.addEdge(NFAEdge::wildcard(end.getNodeID()));
-            } else {
-                start.addEdge(NFAEdge(end.getNodeID(), leaf.getCharacters()));
-            }
+            start.addEdge(NFAEdge(end.getNodeID(), leaf.getCharacters()));
 
             nfaStack.emplace(NFA(start, {std::move(start), std::move(end)}, end));
         }
 
         void visit(Concatenation& concatenation) override {
-            concatenation.getLeft()->accept(*this);
-            concatenation.getRight()->accept(*this);
+            std::ignore = concatenation;
 
-            auto right = popNFA();
             auto left = popNFA();
+            auto right = popNFA();
 
             left.getAcceptingNode().addEdge(NFAEdge::epsilon(right.getStartNodeID()));
 
@@ -43,7 +37,7 @@ namespace scanner {
         }
 
         void visit(Kleene& kleene) override {
-            kleene.getKleeneNode()->accept(*this);
+            std::ignore = kleene;
 
             auto child = popNFA();
             auto start = NFANode();
@@ -52,7 +46,7 @@ namespace scanner {
             start.addEdge(NFAEdge::epsilon(end.getNodeID()));
             start.addEdge(NFAEdge::epsilon(child.getStartNodeID()));
 
-            auto& childEnd = child.getAcceptingNode();
+            auto childEnd = child.getAcceptingNode();
             childEnd.addEdge(NFAEdge::epsilon(end.getNodeID()));
             childEnd.addEdge(NFAEdge::epsilon(start.getNodeID()));
 
@@ -64,29 +58,28 @@ namespace scanner {
         }
 
         void visit(Optional& optional) override {
-            optional.getOptionalNode()->accept(*this);
+            std::ignore = optional;
             NFA child = popNFA();
 
-            auto& start = child.getStartNode();
+            auto start = child.getStartNode();
             start.addEdge(NFAEdge::epsilon(child.getAcceptingNodeID()));
 
             nfaStack.push(std::move(child));
         }
 
         void visit(Union& unionElement) override {
-            unionElement.getLeft()->accept(*this);
-            unionElement.getRight()->accept(*this);
+            std::ignore = unionElement;
 
-            auto right = popNFA();
             auto left = popNFA();
+            auto right = popNFA();
 
             auto start = NFANode();
             start.addEdge(NFAEdge::epsilon(left.getStartNodeID()));
             start.addEdge(NFAEdge::epsilon(right.getStartNodeID()));
 
             auto end = NFANode();
-            auto& leftAcceptingNode = left.getAcceptingNode();
-            auto& rightAcceptingNode = right.getAcceptingNode();
+            auto leftAcceptingNode = left.getAcceptingNode();
+            auto rightAcceptingNode = right.getAcceptingNode();
 
             leftAcceptingNode.addEdge(NFAEdge::epsilon(end.getNodeID()));
             rightAcceptingNode.addEdge(NFAEdge::epsilon(end.getNodeID()));
@@ -102,24 +95,16 @@ namespace scanner {
             return nfaStack.top();
         }
 
-        NFA&& moveConstructedNFA() {
-            if (nfaStack.size() != 1) {
-                throw std::runtime_error("No unique final NFA found");
-            }
-
-            return std::move(nfaStack.top());
-        }
-
     private:
-        NFA popNFA() {
+        NFA&& popNFA() {
             if (nfaStack.empty()) {
                 throw std::runtime_error("NFA stack is empty");
             }
 
-            NFA result = std::move(nfaStack.top());
+            NFA&& nfa = std::move(nfaStack.top());
             nfaStack.pop();
 
-            return result;
+            return std::move(nfa);
         }
 
         static std::vector<NFANode> mergeNodes(const NFA& first, const NFA& second, const std::vector<NFANode>& other) {
