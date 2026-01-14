@@ -30,6 +30,14 @@ namespace scanner {
             return states.contains(state);
         }
 
+        const std::vector<std::uint32_t>& getLockedStates() const {
+            if (!isLocked) {
+                throw std::runtime_error("Cannot access locked states before calling lock");
+            }
+
+            return lockedStates;
+        }
+
         /*
          * Locks the StateSet, making it immutable and allowing for efficient comparison.
          * Both the hash and sorting the array helps with comparison efficiency.
