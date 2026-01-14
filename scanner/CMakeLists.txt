@@ -10,6 +10,8 @@ add_library(scanner STATIC)
 target_sources(
     scanner PUBLIC
     FILE_SET cxx_modules TYPE CXX_MODULES FILES
+    dfa/DFA.cppm
+    dfa/DFAMatcher.cppm
     regex/Regex.cppm
     regex/RegexNode.cppm
     regex/Concatenation.cppm
@@ -24,4 +26,5 @@ target_sources(
     generator/thompson-construction/ThompsonConstructionVisitor.cppm
     generator/nfa-dfa-conversion/StateSet.cppm
     generator/nfa-dfa-conversion/eClosure.cppm
+    generator/nfa-dfa-conversion/PowerSetConstruction.cppm
 )
