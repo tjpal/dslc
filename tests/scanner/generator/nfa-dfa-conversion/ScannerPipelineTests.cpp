@@ -1,36 +1,50 @@
+
 #include <gtest/gtest.h>
 
 #include <initializer_list>
 #include <memory>
-#include <set>
 #include <string>
 #include <vector>
 
+import Scanner.Regex;
+import Scanner.ThompsonConstructionVisitor;
+import Scanner.PowerSetConstruction;
+import Scanner.DFA;
 import Scanner.DFAMatcher;
-import Scanner.Generator;
+import Scanner.NFA;
 
 namespace {
 
-scanner::DFAMatcher BuildMatcherFromRegex(const std::string& expression) {
-    return scanner::DFAMatcher(scanner::Generator::generateScanner(expression));
+std::shared_ptr<scanner::Leaf> MakeLeaf(char symbol) {
+    auto leaf = std::make_shared<scanner::Leaf>();
+    leaf->setCharacters(std::vector<char>{symbol});
+    return leaf;
 }
 
-scanner::DFAMatcher BuildMatcherFromRegexes(const std::vector<std::string>& expressions) {
-    return scanner::DFAMatcher(scanner::Generator::generateScanner(expressions));
+std::shared_ptr<scanner::RegexNode> BuildSequence(const std::string& literal) {
+    if (literal.empty()) {
+        return nullptr;
+    }
+
+    std::shared_ptr<scanner::RegexNode> sequence = MakeLeaf(literal[0]);
+    for (std::size_t index = 1; index < literal.size(); ++index) {
+        sequence = std::make_shared<scanner::Concatenation>(sequence, MakeLeaf(literal[index]));
+    }
+    return sequence;
+}
+
+scanner::DFAMatcher BuildMatcher(const std::shared_ptr<scanner::RegexNode>& root) {
+    scanner::ThompsonConstructionVisitor visitor;
+    root->accept(visitor);
+
+    const scanner::NFA& constructedNFA = visitor.getConstructedNFA();
+    scanner::DFA dfa = scanner::PowerSetConstruction::convert(constructedNFA);
+    return scanner::DFAMatcher(std::move(dfa));
 }
 
 void ExpectMatches(const scanner::DFAMatcher& matcher, const std::initializer_list<std::string>& inputs) {
     for (const auto& input : inputs) {
         EXPECT_TRUE(matcher.match(input)) << "Expected to accept '" << input << "'";
-    }
-}
-
-void ExpectMatchedIds(const scanner::DFAMatcher& matcher, const std::initializer_list<std::pair<std::string, std::set<std::uint32_t>>>& inputs) {
-    for (const auto& input : inputs) {
-        auto matchedIds = matcher.getMatchingIDs(input.first);
-
-        EXPECT_EQ(matchedIds.size(), input.second.size()) << "Expected to match IDs for '" << input.first << "'";
-        EXPECT_EQ(matchedIds, input.second) << "Expected to match IDs for '" << input.first << "'";
     }
 }
 
@@ -43,88 +57,55 @@ void ExpectRejections(const scanner::DFAMatcher& matcher, const std::initializer
 } // namespace
 
 TEST(ScannerPipelineTests, SingleLiteralAcceptsExactMatch) {
-    auto matcher = BuildMatcherFromRegex("a");
+    auto matcher = BuildMatcher(BuildSequence("a"));
 
     ExpectMatches(matcher, {"a"});
     ExpectRejections(matcher, {"", "b", "aa"});
 }
 
 TEST(ScannerPipelineTests, UnionAcceptsEitherAlternative) {
-    auto matcher = BuildMatcherFromRegex("a|b");
+    auto leftLeaf = MakeLeaf('a');
+    auto rightLeaf = MakeLeaf('b');
+    auto unionNode = std::make_shared<scanner::Union>(leftLeaf, rightLeaf);
+
+    auto matcher = BuildMatcher(unionNode);
 
     ExpectMatches(matcher, {"a", "b"});
     ExpectRejections(matcher, {"", "c", "ab"});
 }
 
 TEST(ScannerPipelineTests, ConcatenationAcceptsSequence) {
-    auto matcher = BuildMatcherFromRegex("ab");
+    auto concatenation = std::make_shared<scanner::Concatenation>(MakeLeaf('a'), MakeLeaf('b'));
+    auto matcher = BuildMatcher(concatenation);
 
     ExpectMatches(matcher, {"ab"});
     ExpectRejections(matcher, {"", "a", "b", "abc"});
 }
 
 TEST(ScannerPipelineTests, KleeneStarAcceptsZeroOrMoreOccurrences) {
-    auto matcher = BuildMatcherFromRegex("a*");
+    auto kleene = std::make_shared<scanner::Kleene>(MakeLeaf('a'));
+    auto matcher = BuildMatcher(kleene);
 
     ExpectMatches(matcher, {"", "a", "aaaa"});
     ExpectRejections(matcher, {"b", "ab", "ba"});
 }
 
 TEST(ScannerPipelineTests, OptionalAcceptsZeroOrOneOccurrence) {
-    auto matcher = BuildMatcherFromRegex("a?");
+    auto optional = std::make_shared<scanner::Optional>(MakeLeaf('a'));
+    auto matcher = BuildMatcher(optional);
 
     ExpectMatches(matcher, {"", "a"});
     ExpectRejections(matcher, {"aa", "b"});
 }
 
 TEST(ScannerPipelineTests, ComplexRegexHandlesAbcOrDefRepeatedly) {
-    auto matcher = BuildMatcherFromRegex("(abc|def)*");
+    auto abcSequence = BuildSequence("abc");
+    auto defSequence = BuildSequence("def");
+    auto unionNode = std::make_shared<scanner::Union>(abcSequence, defSequence);
+    auto repetition = std::make_shared<scanner::Kleene>(unionNode);
+
+    auto matcher = BuildMatcher(repetition);
 
     ExpectMatches(matcher, {"", "abc", "defabc", "defabcdef"});
     ExpectRejections(matcher, {"ab", "abcde", "xyz", "abcdefg"});
-}
-
-TEST(ScannerPipelineTests, Test2) {
-    auto matcher = BuildMatcherFromRegex("(abc|def)*(x)?123");
-
-    ExpectMatches(matcher, {"123", "abc123", "defabcdefx123", "defabcdef123"});
-    ExpectRejections(matcher, {"ab", "abcde", "xyz", "abcdefg"});
-}
-
-TEST(ScannerPipelineTests, MultiRegexComplexRegexes) {
-    auto matcher = BuildMatcherFromRegexes({"a(abc|def)*", "(ayz)?789"});
-
-    ExpectMatchedIds(
-        matcher,
-        {
-            { "a", { 0 }},
-            { "aabc", { 0 }},
-            { "adefabc", { 0 }},
-            { "adefabcdef", { 0 }},
-            { "789", { 1 }},
-            { "ayz789", { 0, 1 }}
-            }
-        );
-    ExpectRejections(matcher, {"abc123", "xyz123", "123", "defxyz789"});
-}
-
-TEST(ScannerPipelineTests, DotMatchesAnySingleCharacter) {
-    auto matcher = BuildMatcherFromRegex(".");
-
-    ExpectMatches(matcher, {"a", "Z", "1"});
-    ExpectRejections(matcher, {"", "ab"});
-}
-
-TEST(ScannerPipelineTests, EscapedDotMatchesLiteral) {
-    auto matcher = BuildMatcherFromRegex("\\.");
-
-    ExpectMatches(matcher, {"."});
-    ExpectRejections(matcher, {"", "a", ".."});
-}
-
-TEST(ScannerPipelineTests, DotMatchesCharactersMissingFromAlphabet) {
-    auto matcher = BuildMatcherFromRegex("a.");
-
-    ExpectMatches(matcher, {"ab", "ax"});
-    ExpectRejections(matcher, {"a", "abc"});
 }

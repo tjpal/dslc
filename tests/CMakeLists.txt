@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_executable(
     dslc-test
     scanner/generator/nfa-dfa-conversion/StateSetTest.cpp
+    scanner/generator/nfa-dfa-conversion/ScannerPipelineTests.cpp
 )
 
 target_link_libraries(

@@ -48,7 +48,7 @@ namespace scanner {
             start.addEdge(NFAEdge::epsilon(end.getNodeID()));
             start.addEdge(NFAEdge::epsilon(child.getStartNodeID()));
 
-            auto childEnd = child.getAcceptingNode();
+            auto& childEnd = child.getAcceptingNode();
             childEnd.addEdge(NFAEdge::epsilon(end.getNodeID()));
             childEnd.addEdge(NFAEdge::epsilon(start.getNodeID()));
 
@@ -63,7 +63,7 @@ namespace scanner {
             optional.getOptionalNode()->accept(*this);
             NFA child = popNFA();
 
-            auto start = child.getStartNode();
+            auto& start = child.getStartNode();
             start.addEdge(NFAEdge::epsilon(child.getAcceptingNodeID()));
 
             nfaStack.push(std::move(child));
@@ -81,8 +81,8 @@ namespace scanner {
             start.addEdge(NFAEdge::epsilon(right.getStartNodeID()));
 
             auto end = NFANode();
-            auto leftAcceptingNode = left.getAcceptingNode();
-            auto rightAcceptingNode = right.getAcceptingNode();
+            auto& leftAcceptingNode = left.getAcceptingNode();
+            auto& rightAcceptingNode = right.getAcceptingNode();
 
             leftAcceptingNode.addEdge(NFAEdge::epsilon(end.getNodeID()));
             rightAcceptingNode.addEdge(NFAEdge::epsilon(end.getNodeID()));
