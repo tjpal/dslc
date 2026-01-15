@@ -20,6 +20,7 @@ target_sources(
     regex/Optional.cppm
     regex/Union.cppm
     regex/RegexNodeVisitor.cppm
+    parser/RegexParser.cppm
     generator/nfa/NFANode.cppm
     generator/nfa/NFAEdge.cppm
     generator/nfa/NFA.cppm
