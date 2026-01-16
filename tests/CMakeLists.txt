@@ -12,6 +12,7 @@ add_executable(
     dslc-test
     scanner/generator/nfa-dfa-conversion/StateSetTest.cpp
     scanner/generator/nfa-dfa-conversion/ScannerPipelineTests.cpp
+    scanner/dfa/DFASerializerTest.cpp
 )
 
 target_link_libraries(
