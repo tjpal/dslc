@@ -10,6 +10,7 @@ add_library(libscanner STATIC)
 target_sources(
     libscanner PUBLIC
     FILE_SET cxx_modules TYPE CXX_MODULES FILES
+    utilities/SpecialSymbols.cppm
     dfa/DFA.cppm
     dfa/DFAMatcher.cppm
     dfa/DFAAcceptingState.cppm
