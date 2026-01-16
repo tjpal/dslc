@@ -10,30 +10,44 @@ import Scanner.PowerSetConstruction;
 import Scanner.DFA;
 import Scanner.DFAMatcher;
 
-scanner::DFAMatcher BuildMatcher(const std::shared_ptr<scanner::RegexNode>& root) {
-    scanner::ThompsonConstructionVisitor visitor;
-    root->accept(visitor);
+int runScanner(const int argc, const char** argv) {
+    if (argc <= 3) {
+        std::cout << "Usage: dslc scanner <sub-command> <parameters ...>" << std::endl;
+    }
 
-    const scanner::NFA& constructedNFA = visitor.getConstructedNFA();
-    scanner::DFA dfa = scanner::PowerSetConstruction::convert(constructedNFA);
-    return scanner::DFAMatcher(std::move(dfa));
+    const std::string subCommand = argv[2];
+
+    if (subCommand == "generate") {
+        if (argc < 5) {
+            std::cout << "Usage: dslc scanner generate <regex-file> <output-file>" << std::endl;
+            return -1;
+        }
+
+        std::string regexFile = argv[3];
+        std::string outputFile = argv[4];
+
+        // regexFile contains one regular expression per line.
+        // Read it and build a DFA from it.
+
+        // Write the DFA into outputFile
+        return 0;
+    }
+
+    std::cout << "Unknown scanner sub-command: " << subCommand << std::endl;
+    return -1;
 }
 
 int main(const int argc, const char** argv) {
-    if (argc != 3) {
-        std::cerr << "Usage: dslc <regex> <string_to_match>\n";
-        return 1;
+    if (argc <= 2) {
+        std::cout << "Usage: dslc <command> <parameters ...>" << std::endl;
     }
 
-    std::string regex = argv[1];
-    std::string strToMatch = argv[2];
+    const std::string command = argv[1];
 
-    scanner::RegexParser parser;
-    auto regexTree = parser.parse(regex);
-    auto matcher = BuildMatcher(regexTree);
-    const bool isMatch = matcher.match(strToMatch);
+    if (command == "scanner") {
+        return runScanner(argc, argv);
+    }
 
-    std::cout << isMatch << std::endl;
-
-    return 0;
+    std::cout << "Unknown command: " << command << std::endl;
+    return -1;
 }

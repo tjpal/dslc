@@ -14,6 +14,7 @@ target_sources(
     dfa/DFA.cppm
     dfa/DFAMatcher.cppm
     dfa/DFAAcceptingState.cppm
+    dfa/DFASerializer.cppm
     regex/Regex.cppm
     regex/RegexNode.cppm
     regex/Concatenation.cppm
@@ -23,7 +24,7 @@ target_sources(
     regex/Union.cppm
     regex/RegexNodeVisitor.cppm
     parser/RegexParser.cppm
-        generator/Generator.cppm
+    generator/Generator.cppm
     generator/nfa/MergedNFA.cppm
     generator/nfa/NFANode.cppm
     generator/nfa/NFAEdge.cppm
