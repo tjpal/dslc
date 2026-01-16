@@ -5,13 +5,15 @@ project(scanner)
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_library(scanner STATIC)
+add_library(scanner STATIC
+        dfa/DFAAcceptingState.cppm)
 
 target_sources(
     scanner PUBLIC
     FILE_SET cxx_modules TYPE CXX_MODULES FILES
     dfa/DFA.cppm
     dfa/DFAMatcher.cppm
+    dfa/DFAAcceptingState.cppm
     regex/Regex.cppm
     regex/RegexNode.cppm
     regex/Concatenation.cppm
@@ -21,6 +23,8 @@ target_sources(
     regex/Union.cppm
     regex/RegexNodeVisitor.cppm
     parser/RegexParser.cppm
+        generator/Generator.cppm
+    generator/nfa/MergedNFA.cppm
     generator/nfa/NFANode.cppm
     generator/nfa/NFAEdge.cppm
     generator/nfa/NFA.cppm
