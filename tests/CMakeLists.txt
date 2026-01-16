@@ -13,6 +13,7 @@ add_executable(
     scanner/generator/nfa-dfa-conversion/StateSetTest.cpp
     scanner/generator/nfa-dfa-conversion/ScannerPipelineTests.cpp
     scanner/dfa/DFASerializerTest.cpp
+    scanner/regex/RegexParserTest.cpp
 )
 
 target_link_libraries(
