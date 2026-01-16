@@ -133,6 +133,10 @@ namespace scanner {
                 return createLeaf({consumeEscapedCharacter()});
             }
 
+            if (match('.')) {
+                return createWildcardLeaf();
+            }
+
             switch (const char literal = get()) {
             case '|':
             case ')':
@@ -160,6 +164,12 @@ namespace scanner {
 
             auto leaf = std::make_shared<Leaf>();
             leaf->setCharacters(characters);
+            return leaf;
+        }
+
+        std::shared_ptr<RegexNode> createWildcardLeaf() const {
+            auto leaf = std::make_shared<Leaf>();
+            leaf->setWildcard(true);
             return leaf;
         }
 

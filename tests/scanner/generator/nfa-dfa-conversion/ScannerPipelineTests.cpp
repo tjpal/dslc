@@ -2,6 +2,7 @@
 
 #include <initializer_list>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -105,4 +106,25 @@ TEST(ScannerPipelineTests, MultiRegexComplexRegexes) {
             }
         );
     ExpectRejections(matcher, {"abc123", "xyz123", "123", "defxyz789"});
+}
+
+TEST(ScannerPipelineTests, DotMatchesAnySingleCharacter) {
+    auto matcher = BuildMatcherFromRegex(".");
+
+    ExpectMatches(matcher, {"a", "Z", "1"});
+    ExpectRejections(matcher, {"", "ab"});
+}
+
+TEST(ScannerPipelineTests, EscapedDotMatchesLiteral) {
+    auto matcher = BuildMatcherFromRegex("\\.");
+
+    ExpectMatches(matcher, {"."});
+    ExpectRejections(matcher, {"", "a", ".."});
+}
+
+TEST(ScannerPipelineTests, DotMatchesCharactersMissingFromAlphabet) {
+    auto matcher = BuildMatcherFromRegex("a.");
+
+    ExpectMatches(matcher, {"ab", "ax"});
+    ExpectRejections(matcher, {"a", "abc"});
 }

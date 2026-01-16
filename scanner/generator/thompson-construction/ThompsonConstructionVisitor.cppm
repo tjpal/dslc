@@ -17,7 +17,11 @@ namespace scanner {
             auto start = NFANode();
             auto end = NFANode();
 
-            start.addEdge(NFAEdge(end.getNodeID(), leaf.getCharacters()));
+            if (leaf.isWildcard()) {
+                start.addEdge(NFAEdge::wildcard(end.getNodeID()));
+            } else {
+                start.addEdge(NFAEdge(end.getNodeID(), leaf.getCharacters()));
+            }
 
             nfaStack.emplace(NFA(start, {std::move(start), std::move(end)}, end));
         }

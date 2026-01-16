@@ -17,6 +17,7 @@ namespace scanner {
 
         bool isEpsilonTransition() const { return epsilonTransition; }
         std::vector<char> getCharacter() const { return characters; }
+        bool matchesAnySymbol() const { return matchesAnySymbolFlag; }
         std::uint32_t getEndpointID() const { return endpointNodeID; }
 
         static NFAEdge epsilon(std::uint32_t endpoint) {
@@ -25,9 +26,17 @@ namespace scanner {
             return result;
         }
 
+        static NFAEdge wildcard(std::uint32_t endpoint) {
+            auto result = NFAEdge(endpoint);
+            result.epsilonTransition = false;
+            result.matchesAnySymbolFlag = true;
+            return result;
+        }
+
     private:
         bool epsilonTransition = true;
         std::vector<char> characters;
         std::uint32_t endpointNodeID = 0;
+        bool matchesAnySymbolFlag = false;
     };
 } // namespace scanner

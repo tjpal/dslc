@@ -16,6 +16,7 @@ import Scanner.NFA;
 import Scanner.MergedNFA;
 import Scanner.StateSet;
 import Scanner.eClosure;
+import Scanner.SpecialSymbols;
 
 namespace scanner {
     export class PowerSetConstruction final {
@@ -110,6 +111,11 @@ namespace scanner {
                         continue;
                     }
 
+                    if (edge.matchesAnySymbol()) {
+                        alphabetSet.insert(AnySymbol);
+                        continue;
+                    }
+
                     for (const char character : edge.getCharacter()) {
                         alphabetSet.insert(character);
                     }
@@ -125,6 +131,18 @@ namespace scanner {
             for (const std::uint32_t stateID : subset.getLockedStates()) {
                 for (const auto& node = nfa.getNodeByID(stateID); const auto& edge : node.getEdges()) {
                     if (edge.isEpsilonTransition()) {
+                        continue;
+                    }
+
+                    if (symbol == AnySymbol) {
+                        if (edge.matchesAnySymbol()) {
+                            reachable.push_back(edge.getEndpointID());
+                        }
+
+                        continue;
+                    }
+
+                    if (edge.matchesAnySymbol()) {
                         continue;
                     }
 
