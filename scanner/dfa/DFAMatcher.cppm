@@ -1,6 +1,7 @@
 module;
 
 #include <cstddef>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -38,6 +39,31 @@ namespace scanner {
             }
 
             return dfa.isAcceptingState(currentState);
+        }
+
+        std::set<std::uint32_t> getMatchingIDs(const std::string& input) const {
+            std::set<std::uint32_t> acceptingIds;
+            if (dfa.getStateCount() == 0) {
+                return acceptingIds;
+            }
+
+            std::size_t currentState = 0;
+
+            for (const char symbol : input) {
+                const auto it = symbolToIndex.find(symbol);
+                if (it == symbolToIndex.end()) {
+                    break;
+                }
+
+                currentState = static_cast<std::size_t>(dfa.getNextState(currentState, it->second));
+
+                if (dfa.isAcceptingState(currentState)) {
+                    std::vector<std::uint32_t> ids = dfa.getAcceptingIds(currentState);
+                    acceptingIds.insert_range(ids);
+                }
+            }
+
+            return acceptingIds;
         }
 
     private:

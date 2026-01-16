@@ -5,33 +5,31 @@
 #include <string>
 #include <vector>
 
-import Scanner.Regex;
-import Scanner.RegexParser;
-import Scanner.ThompsonConstructionVisitor;
-import Scanner.PowerSetConstruction;
-import Scanner.DFA;
 import Scanner.DFAMatcher;
-import Scanner.NFA;
+import Scanner.Generator;
 
 namespace {
 
-scanner::DFAMatcher BuildMatcher(const std::shared_ptr<scanner::RegexNode>& root) {
-    scanner::ThompsonConstructionVisitor visitor;
-    root->accept(visitor);
-
-    const scanner::NFA& constructedNFA = visitor.getConstructedNFA();
-    scanner::DFA dfa = scanner::PowerSetConstruction::convert(constructedNFA);
-    return scanner::DFAMatcher(std::move(dfa));
+scanner::DFAMatcher BuildMatcherFromRegex(const std::string& expression) {
+    return scanner::DFAMatcher(scanner::Generator::generateScanner(expression));
 }
 
-scanner::DFAMatcher BuildMatcherFromRegex(const std::string& expression) {
-    scanner::RegexParser parser;
-    return BuildMatcher(parser.parse(expression));
+scanner::DFAMatcher BuildMatcherFromRegexes(const std::vector<std::string>& expressions) {
+    return scanner::DFAMatcher(scanner::Generator::generateScanner(expressions));
 }
 
 void ExpectMatches(const scanner::DFAMatcher& matcher, const std::initializer_list<std::string>& inputs) {
     for (const auto& input : inputs) {
         EXPECT_TRUE(matcher.match(input)) << "Expected to accept '" << input << "'";
+    }
+}
+
+void ExpectMatchedIds(const scanner::DFAMatcher& matcher, const std::initializer_list<std::pair<std::string, std::set<std::uint32_t>>>& inputs) {
+    for (const auto& input : inputs) {
+        auto matchedIds = matcher.getMatchingIDs(input.first);
+
+        EXPECT_EQ(matchedIds.size(), input.second.size()) << "Expected to match IDs for '" << input.first << "'";
+        EXPECT_EQ(matchedIds, input.second) << "Expected to match IDs for '" << input.first << "'";
     }
 }
 
@@ -85,10 +83,26 @@ TEST(ScannerPipelineTests, ComplexRegexHandlesAbcOrDefRepeatedly) {
     ExpectRejections(matcher, {"ab", "abcde", "xyz", "abcdefg"});
 }
 
-
 TEST(ScannerPipelineTests, Test2) {
     auto matcher = BuildMatcherFromRegex("(abc|def)*(x)?123");
 
     ExpectMatches(matcher, {"123", "abc123", "defabcdefx123", "defabcdef123"});
     ExpectRejections(matcher, {"ab", "abcde", "xyz", "abcdefg"});
+}
+
+TEST(ScannerPipelineTests, MultiRegexComplexRegexes) {
+    auto matcher = BuildMatcherFromRegexes({"a(abc|def)*", "(ayz)?789"});
+
+    ExpectMatchedIds(
+        matcher,
+        {
+            { "a", { 0 }},
+            { "aabc", { 0 }},
+            { "adefabc", { 0 }},
+            { "adefabcdef", { 0 }},
+            { "789", { 1 }},
+            { "ayz789", { 0, 1 }}
+            }
+        );
+    ExpectRejections(matcher, {"abc123", "xyz123", "123", "defxyz789"});
 }

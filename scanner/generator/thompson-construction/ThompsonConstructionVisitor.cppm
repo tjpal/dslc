@@ -98,6 +98,14 @@ namespace scanner {
             return nfaStack.top();
         }
 
+        NFA&& moveConstructedNFA() {
+            if (nfaStack.size() != 1) {
+                throw std::runtime_error("No unique final NFA found");
+            }
+
+            return std::move(nfaStack.top());
+        }
+
     private:
         NFA popNFA() {
             if (nfaStack.empty()) {

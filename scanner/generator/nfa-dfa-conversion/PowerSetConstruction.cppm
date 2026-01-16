@@ -1,7 +1,9 @@
 module;
 
+#include <algorithm>
 #include <cstddef>
 #include <deque>
+#include <functional>
 #include <map>
 #include <set>
 #include <vector>
@@ -9,20 +11,49 @@ module;
 export module Scanner.PowerSetConstruction;
 
 import Scanner.DFA;
+import Scanner.DFAAcceptingState;
 import Scanner.NFA;
+import Scanner.MergedNFA;
 import Scanner.StateSet;
 import Scanner.eClosure;
 
 namespace scanner {
     export class PowerSetConstruction final {
     public:
+        static DFA convert(const MergedNFA & mergedNFA) {
+            const auto createAccepting = [&](const StateSet& subset) -> DFAAcceptingState {
+                std::vector<std::uint32_t> nfaIds;
+                for (const AcceptingState& acceptingState : mergedNFA.getAcceptingStates()) {
+                    if (subset.contains(acceptingState.getNodeID())) {
+                        nfaIds.emplace_back(acceptingState.getNFAID());
+                    }
+                }
+
+                return {!nfaIds.empty(), nfaIds};
+            };
+
+            return convert(mergedNFA.getMergedNFA(), createAccepting);
+        }
+
         static DFA convert(const NFA& nfa) {
+            const std::uint32_t acceptingNodeId = nfa.getAcceptingNodeID();
+
+            const auto createAccepting = [&](const StateSet& subset) -> DFAAcceptingState {
+                bool isAccepting = subset.contains(acceptingNodeId);
+                return { isAccepting, { 0 } };
+            };
+
+            return convert(nfa, createAccepting);
+        }
+
+    private:
+        static DFA convert(const NFA& nfa, const std::function<DFAAcceptingState(const StateSet&)>& makeAccepting) {
             const std::vector<char> alphabet = collectAlphabet(nfa);
 
             std::vector<StateSet> subsets;
             std::map<std::vector<std::uint32_t>, std::size_t> subsetIndex;
             std::vector<std::vector<std::uint32_t>> transitionTable;
-            std::vector<bool> acceptingStates;
+            std::vector<DFAAcceptingState> acceptingStates;
             std::deque<std::size_t> workQueue;
 
             const auto addSubset = [&](StateSet subset) -> std::size_t {
@@ -37,8 +68,7 @@ namespace scanner {
 
                 transitionTable.emplace_back(alphabet.size());
 
-                const bool isAccepting = subsets.back().contains(nfa.getAcceptingNodeID());
-                acceptingStates.push_back(isAccepting);
+                acceptingStates.push_back(makeAccepting(subsets.back()));
 
                 workQueue.push_back(index);
 
@@ -71,7 +101,6 @@ namespace scanner {
             return DFA(transitionTable, acceptingStates, alphabet);
         }
 
-    private:
         static std::vector<char> collectAlphabet(const NFA& nfa) {
             std::set<char> alphabetSet;
 
