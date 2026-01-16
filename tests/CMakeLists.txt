@@ -17,7 +17,7 @@ add_executable(
 
 target_link_libraries(
     dslc-test PRIVATE
-    scanner
+    libscanner
     GTest::Main
     GTest::GTest
     stdc++

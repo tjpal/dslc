@@ -5,11 +5,10 @@ project(scanner)
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_library(scanner STATIC
-        dfa/DFAAcceptingState.cppm)
+add_library(libscanner STATIC)
 
 target_sources(
-    scanner PUBLIC
+    libscanner PUBLIC
     FILE_SET cxx_modules TYPE CXX_MODULES FILES
     dfa/DFA.cppm
     dfa/DFAMatcher.cppm
