@@ -74,7 +74,7 @@ bool runScanner(const std::filesystem::path& dfaPath,
 
 int main(const int argc, const char** argv) {
     if (argc != 4) {
-        std::cout << "Usage: scanner <dfa-file> <input-file> <results-file>" << std::endl;
+        std::cout << "Usage: dslc-scanner <dfa-file> <input-file> <results-file>" << std::endl;
         return -1;
     }
 
