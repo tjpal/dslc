@@ -1,11 +1,11 @@
-import Scanner.DFASerializer;
-import Scanner.DFAMatcher;
-
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <set>
 #include <string>
+
+import Scanner.DFASerializer;
+import Scanner.DFAMatcher;
 
 scanner::DFAMatcher buildMatcher(const std::filesystem::path& dfaPath) {
     return scanner::DFAMatcher(scanner::DFASerializer::deserialize(dfaPath));
