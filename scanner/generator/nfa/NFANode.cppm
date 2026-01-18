@@ -19,7 +19,7 @@ namespace scanner {
         std::uint32_t getAcceptingStateID() { return acceptingStateID; }
 
         void addEdge(const NFAEdge& edge) { edges.push_back(edge); }
-        std::vector<NFAEdge> getEdges() const { return edges; }
+        const std::vector<NFAEdge>& getEdges() const { return edges; }
 
         std::uint32_t getNodeID() const { return nodeID; }
 
