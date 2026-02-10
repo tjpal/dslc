@@ -79,7 +79,8 @@ int runScanner(const int argc, const char** argv) {
                 return -1;
             }
 
-            const scanner::DFA dfa = scanner::Generator::generateScanner(expressions);
+            scanner::Generator generator;
+            const scanner::DFA dfa = generator.generateScanner(expressions);
             scanner::DFASerializer::serialize(dfa, outputFilePath);
         } catch (const std::exception& error) {
             std::cerr << "Failed to generate scanner: " << error.what() << std::endl;

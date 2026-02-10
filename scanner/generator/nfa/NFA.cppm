@@ -7,6 +7,7 @@ export module Scanner.NFA;
 
 export import :NFAEdge;
 export import :NFANode;
+export import :NFANodeFactory;
 
 namespace scanner {
     export class NFA {

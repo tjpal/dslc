@@ -26,9 +26,9 @@ namespace scanner {
 
     export class MergedNFA {
     public:
-        explicit MergedNFA(const std::vector<NFA>& nfas) {
+        MergedNFA(const std::vector<NFA>& nfas, NFANodeFactory& nodeFactory) {
             std::vector<NFANode> mergedNodes;
-            mergeNodes(nfas, mergedNodes);
+            mergeNodes(nfas, mergedNodes, nodeFactory);
 
             auto& rootNode = mergedNodes[0];
 
@@ -39,7 +39,7 @@ namespace scanner {
                 nfaIndex++;
             }
 
-            mergedNFA = NFA(rootNode, std::move(mergedNodes), NFANode());
+            mergedNFA = NFA(rootNode, std::move(mergedNodes), rootNode);
         }
 
         const NFA& getMergedNFA() const {
@@ -51,7 +51,7 @@ namespace scanner {
         }
 
     private:
-        void mergeNodes(const std::vector<NFA>& nfas, std::vector<NFANode>& mergedNodes) {
+        void mergeNodes(const std::vector<NFA>& nfas, std::vector<NFANode>& mergedNodes, NFANodeFactory& nodeFactory) {
             std::uint32_t numNodes = 0;
             for (const auto& nfa : nfas) {
                 numNodes += nfa.getNodes().size();
@@ -59,7 +59,7 @@ namespace scanner {
 
             mergedNodes.reserve(numNodes + 1); // +1 for the new root node
 
-            mergedNodes.emplace_back(NFANode());
+            mergedNodes.emplace_back(nodeFactory.createNode());
 
             for (const auto& nfa : nfas) {
                 std::ranges::copy(nfa.getNodes(), std::back_inserter(mergedNodes));

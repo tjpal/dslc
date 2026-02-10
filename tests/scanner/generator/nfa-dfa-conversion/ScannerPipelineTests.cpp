@@ -12,11 +12,13 @@ import Scanner.Generator;
 namespace {
 
 scanner::DFAMatcher BuildMatcherFromRegex(const std::string& expression) {
-    return scanner::DFAMatcher(scanner::Generator::generateScanner(expression));
+    scanner::Generator generator;
+    return scanner::DFAMatcher(generator.generateScanner(expression));
 }
 
 scanner::DFAMatcher BuildMatcherFromRegexes(const std::vector<std::string>& expressions) {
-    return scanner::DFAMatcher(scanner::Generator::generateScanner(expressions));
+    scanner::Generator generator;
+    return scanner::DFAMatcher(generator.generateScanner(expressions));
 }
 
 void ExpectMatches(const scanner::DFAMatcher& matcher, const std::initializer_list<std::string>& inputs) {

@@ -28,6 +28,7 @@ target_sources(
     generator/Generator.cppm
     generator/nfa/MergedNFA.cppm
     generator/nfa/NFANode.cppm
+    generator/nfa/NFANodeFactory.cppm
     generator/nfa/NFAEdge.cppm
     generator/nfa/NFA.cppm
     generator/thompson-construction/ThompsonConstructionVisitor.cppm
