@@ -1,6 +1,5 @@
 module;
 
-#include <atomic>
 #include <cstdint>
 #include <vector>
 
@@ -11,7 +10,6 @@ import :NFAEdge;
 namespace scanner {
     export class NFANode {
     public:
-        NFANode() = default;
         NFANode(NFANode&&) = default;
         NFANode(const NFANode&) = default;
 
@@ -26,17 +24,14 @@ namespace scanner {
         NFANode& operator=(NFANode&&) = default;
 
     private:
-        static std::uint32_t generateNodeID() {
-            return nextNodeID.fetch_add(1, std::memory_order_relaxed);
-        }
+        friend class NFANodeFactory;
+
+        explicit NFANode(std::uint32_t nodeID) : nodeID(nodeID) {}
 
     private:
         std::uint32_t acceptingStateID = 0;
         std::vector<NFAEdge> edges;
-        std::uint32_t nodeID { generateNodeID() };
-
-        static std::atomic<std::uint32_t> nextNodeID;
+        std::uint32_t nodeID = 0;
     };
 
-    std::atomic<std::uint32_t> NFANode::nextNodeID = 0;
 } // namespace scanner

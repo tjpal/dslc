@@ -16,12 +16,13 @@ import Scanner.MergedNFA;
 namespace scanner {
     export class Generator {
     public:
+        Generator() = default;
 
-        static DFA generateScanner(const std::string& regex) {
+        DFA generateScanner(const std::string& regex) {
             RegexParser parser;
             const auto regexTree = parser.parse(regex);
 
-            ThompsonConstructionVisitor visitor;
+            ThompsonConstructionVisitor visitor(nodeFactory);
             regexTree->accept(visitor);
 
             const NFA& constructedNFA = visitor.getConstructedNFA();
@@ -29,7 +30,7 @@ namespace scanner {
             return dfa;
         }
 
-        static DFA generateScanner(const std::vector<std::string>& regexes) {
+        DFA generateScanner(const std::vector<std::string>& regexes) {
             std::vector<std::shared_ptr<RegexNode>> regexNodes;
             regexNodes.reserve(regexes.size());
 
@@ -40,15 +41,18 @@ namespace scanner {
 
             std::vector<NFA> nfas;
             for (const auto& regexNode : regexNodes) {
-                ThompsonConstructionVisitor visitor;
+                ThompsonConstructionVisitor visitor(nodeFactory);
                 regexNode->accept(visitor);
                 nfas.push_back(visitor.moveConstructedNFA());
             }
 
-            MergedNFA mergedNFA(nfas);
+            MergedNFA mergedNFA(nfas, nodeFactory);
             DFA dfa = PowerSetConstruction::convert(mergedNFA);
 
             return dfa;
         }
+
+    private:
+        NFANodeFactory nodeFactory;
     };
 }

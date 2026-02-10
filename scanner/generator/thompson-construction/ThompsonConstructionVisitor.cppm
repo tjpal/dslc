@@ -13,9 +13,11 @@ import Scanner.Regex;
 namespace scanner {
     export class ThompsonConstructionVisitor final : public RegexNodeVisitor {
     public:
+        explicit ThompsonConstructionVisitor(NFANodeFactory& nodeFactory) : nodeFactory(nodeFactory) {}
+
         void visit(Leaf& leaf) override {
-            auto start = NFANode();
-            auto end = NFANode();
+            auto start = nodeFactory.createNode();
+            auto end = nodeFactory.createNode();
 
             if (leaf.isWildcard()) {
                 start.addEdge(NFAEdge::wildcard(end.getNodeID()));
@@ -46,8 +48,8 @@ namespace scanner {
             kleene.getKleeneNode()->accept(*this);
 
             auto child = popNFA();
-            auto start = NFANode();
-            auto end = NFANode();
+            auto start = nodeFactory.createNode();
+            auto end = nodeFactory.createNode();
 
             start.addEdge(NFAEdge::epsilon(end.getNodeID()));
             start.addEdge(NFAEdge::epsilon(child.getStartNodeID()));
@@ -67,8 +69,8 @@ namespace scanner {
             plus.getPlusNode()->accept(*this);
 
             auto child = popNFA();
-            auto start = NFANode();
-            auto end = NFANode();
+            auto start = nodeFactory.createNode();
+            auto end = nodeFactory.createNode();
 
             start.addEdge(NFAEdge::epsilon(child.getStartNodeID()));
 
@@ -100,18 +102,18 @@ namespace scanner {
             auto right = popNFA();
             auto left = popNFA();
 
-            auto start = NFANode();
+            auto start = nodeFactory.createNode();
             start.addEdge(NFAEdge::epsilon(left.getStartNodeID()));
             start.addEdge(NFAEdge::epsilon(right.getStartNodeID()));
 
-            auto end = NFANode();
+            auto end = nodeFactory.createNode();
             auto& leftAcceptingNode = left.getAcceptingNode();
             auto& rightAcceptingNode = right.getAcceptingNode();
 
             leftAcceptingNode.addEdge(NFAEdge::epsilon(end.getNodeID()));
             rightAcceptingNode.addEdge(NFAEdge::epsilon(end.getNodeID()));
 
-            nfaStack.push(NFA(start, mergeNodes(left, right, {start, end}), {end}));
+            nfaStack.push(NFA(start, mergeNodes(left, right, {start, end}), end));
         }
 
         const NFA& getConstructedNFA() const {
@@ -154,6 +156,7 @@ namespace scanner {
             return std::move(result);
         }
 
+        NFANodeFactory& nodeFactory;
         std::stack<NFA> nfaStack;
     };
 
