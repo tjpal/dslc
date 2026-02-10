@@ -38,6 +38,14 @@ namespace scanner {
             return lockedStates;
         }
 
+        std::uint32_t getHash() const {
+            if (!isLocked) {
+                throw std::runtime_error("Cannot access hash before calling lock");
+            }
+
+            return hash;
+        }
+
         /*
          * Locks the StateSet, making it immutable and allowing for efficient comparison.
          * Both the hash and sorting the array helps with comparison efficiency.
@@ -70,7 +78,7 @@ namespace scanner {
 
     private:
         // Based on http://www.cse.yorku.ca/~oz/hash.html
-        std::uint32_t computeHash(const std::vector<std::uint32_t> states) const {
+        std::uint32_t computeHash(const std::vector<std::uint32_t>& states) const {
             std::uint32_t hash = 5381;
 
             for (const std::uint32_t state : states) {

@@ -37,3 +37,13 @@ TEST(StateSetTests, CompareUnlockStateSetThrows) {
 
     EXPECT_THROW(stateSet1.operator==(stateSet2), std::runtime_error);
 }
+
+TEST(StateSetTests, HashMatchesEquivalentLockedSets) {
+    scanner::StateSet stateSet1{1, 3, 2};
+    stateSet1.lock();
+
+    scanner::StateSet stateSet2{3, 2, 1};
+    stateSet2.lock();
+
+    EXPECT_EQ(stateSet1.getHash(), stateSet2.getHash());
+}

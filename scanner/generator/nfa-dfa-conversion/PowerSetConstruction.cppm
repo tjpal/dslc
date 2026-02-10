@@ -4,8 +4,8 @@ module;
 #include <cstddef>
 #include <deque>
 #include <functional>
-#include <map>
 #include <set>
+#include <unordered_map>
 #include <vector>
 
 export module Scanner.PowerSetConstruction;
@@ -53,21 +53,26 @@ namespace scanner {
 
             const std::vector<char> alphabet = collectAlphabet(nfa);
 
+            struct StateSubsetHash final {
+                std::size_t operator()(const StateSet& subset) const {
+                    return static_cast<std::size_t>(subset.getHash());
+                }
+            };
+
             std::vector<StateSet> subsets;
-            std::map<std::vector<std::uint32_t>, std::size_t> subsetIndex;
+            std::unordered_map<StateSet, std::size_t, StateSubsetHash> subsetIndex;
             std::vector<std::vector<std::uint32_t>> transitionTable;
             std::vector<DFAAcceptingState> acceptingStates;
             std::deque<std::size_t> workQueue;
 
             const auto addSubset = [&](StateSet subset) -> std::size_t {
-                const std::vector<std::uint32_t> lockedStates = subset.getLockedStates();
-                if (const auto it = subsetIndex.find(lockedStates); it != subsetIndex.end()) {
+                if (const auto it = subsetIndex.find(subset); it != subsetIndex.end()) {
                     return it->second;
                 }
 
                 const std::size_t index = subsets.size();
-                subsetIndex.emplace(lockedStates, index);
                 subsets.push_back(std::move(subset));
+                subsetIndex.emplace(subsets.back(), index);
 
                 transitionTable.emplace_back(alphabet.size());
 
