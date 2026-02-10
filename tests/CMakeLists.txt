@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_executable(
     dslc-test
+    scanner/generator/nfa/NFALockTest.cpp
     scanner/generator/nfa-dfa-conversion/StateSetTest.cpp
     scanner/generator/nfa-dfa-conversion/ScannerPipelineTests.cpp
     scanner/dfa/DFASerializerTest.cpp

@@ -49,6 +49,8 @@ namespace scanner {
 
     private:
         static DFA convert(const NFA& nfa, const std::function<DFAAcceptingState(const StateSet&)>& makeAccepting) {
+            nfa.lock();
+
             const std::vector<char> alphabet = collectAlphabet(nfa);
 
             std::vector<StateSet> subsets;
