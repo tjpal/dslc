@@ -77,6 +77,13 @@ TEST(ScannerPipelineTests, OptionalAcceptsZeroOrOneOccurrence) {
     ExpectRejections(matcher, {"aa", "b"});
 }
 
+TEST(ScannerPipelineTests, PlusAcceptsOneOrMoreOccurrences) {
+    auto matcher = BuildMatcherFromRegex("a+");
+
+    ExpectMatches(matcher, {"a", "aa", "aaaa"});
+    ExpectRejections(matcher, {"", "b", "ab", "ba"});
+}
+
 TEST(ScannerPipelineTests, ComplexRegexHandlesAbcOrDefRepeatedly) {
     auto matcher = BuildMatcherFromRegex("(abc|def)*");
 

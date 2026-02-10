@@ -19,6 +19,7 @@ target_sources(
     regex/RegexNode.cppm
     regex/Concatenation.cppm
     regex/Kleene.cppm
+    regex/Plus.cppm
     regex/Leaf.cppm
     regex/Optional.cppm
     regex/Union.cppm

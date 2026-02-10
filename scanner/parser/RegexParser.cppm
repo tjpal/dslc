@@ -103,6 +103,11 @@ namespace scanner {
                     continue;
                 }
 
+                if (match('+')) {
+                    node = std::make_shared<Plus>(node);
+                    continue;
+                }
+
                 if (match('?')) {
                     node = std::make_shared<Optional>(node);
                     continue;
@@ -150,6 +155,7 @@ namespace scanner {
             case '|':
             case ')':
             case '*':
+            case '+':
             case '?':
             case ']':
                 throw std::runtime_error(std::string("Unexpected symbol '") + literal + "'");

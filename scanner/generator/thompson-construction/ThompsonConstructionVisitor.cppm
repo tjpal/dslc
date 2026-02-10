@@ -63,6 +63,26 @@ namespace scanner {
             );
         }
 
+        void visit(Plus& plus) override {
+            plus.getPlusNode()->accept(*this);
+
+            auto child = popNFA();
+            auto start = NFANode();
+            auto end = NFANode();
+
+            start.addEdge(NFAEdge::epsilon(child.getStartNodeID()));
+
+            auto& childEnd = child.getAcceptingNode();
+            childEnd.addEdge(NFAEdge::epsilon(end.getNodeID()));
+            childEnd.addEdge(NFAEdge::epsilon(start.getNodeID()));
+
+            nfaStack.emplace(
+                start,
+                mergeNodes(child, NFA(), {start, end}),
+                end
+            );
+        }
+
         void visit(Optional& optional) override {
             optional.getOptionalNode()->accept(*this);
             NFA child = popNFA();
