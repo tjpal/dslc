@@ -17,6 +17,10 @@ std::shared_ptr<scanner::Leaf> asLeaf(const std::shared_ptr<scanner::RegexNode>&
     return std::dynamic_pointer_cast<scanner::Leaf>(node);
 }
 
+std::shared_ptr<scanner::Plus> asPlus(const std::shared_ptr<scanner::RegexNode>& node) {
+    return std::dynamic_pointer_cast<scanner::Plus>(node);
+}
+
 } // namespace
 
 TEST(RegexParserPredefinedCharacterClasses, ParsesDigitClassIntoLeaf) {
@@ -57,4 +61,18 @@ TEST(RegexParserPredefinedCharacterClasses, ParsessWordClassInsideCharacterClass
     EXPECT_TRUE(containsCharacter(characters, '0'));
     EXPECT_TRUE(containsCharacter(characters, 'A'));
     EXPECT_TRUE(containsCharacter(characters, '_'));
+}
+
+TEST(RegexParserQuantifiers, ParsesPlusAsOneOrMoreOperator) {
+    scanner::RegexParser parser;
+    const auto node = parser.parse("a+");
+    const auto plus = asPlus(node);
+    ASSERT_NE(nullptr, plus);
+
+    const auto leaf = asLeaf(plus->getPlusNode());
+    ASSERT_NE(nullptr, leaf);
+
+    const auto& characters = leaf->getCharacters();
+    ASSERT_EQ(1u, characters.size());
+    EXPECT_EQ('a', characters[0]);
 }

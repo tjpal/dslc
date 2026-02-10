@@ -5,6 +5,7 @@ namespace scanner {
     export class Leaf;
     export class Concatenation;
     export class Kleene;
+    export class Plus;
     export class Union;
 
     export class RegexNodeVisitor {
@@ -15,6 +16,7 @@ namespace scanner {
         virtual void visit(Leaf& node) {}
         virtual void visit(Concatenation& node) {}
         virtual void visit(Kleene& node) {}
+        virtual void visit(Plus& node) {}
         virtual void visit(Union& node) {}
     };
 } // namespace scanner
