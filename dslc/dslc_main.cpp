@@ -55,6 +55,10 @@ std::vector<std::string> loadRegexExpressions(const std::filesystem::path& regex
     return expressions;
 }
 
+bool hasProfileFlag(const std::vector<std::string>& arguments) {
+    return std::find(arguments.begin(), arguments.end(), "--profile") != arguments.end();
+}
+
 int runScanner(const int argc, const char** argv) {
     if (argc < 3) {
         std::cout << "Usage: dslc scanner <sub-command> <parameters ...>" << std::endl;
@@ -65,12 +69,34 @@ int runScanner(const int argc, const char** argv) {
 
     if (subCommand == "generate") {
         if (argc < 5) {
-            std::cout << "Usage: dslc scanner generate <regex-file> <output-file>" << std::endl;
+            std::cout << "Usage: dslc scanner generate [--profile] <regex-file> <output-file>" << std::endl;
             return -1;
         }
 
-        const std::filesystem::path regexFilePath = argv[3];
-        const std::filesystem::path outputFilePath = argv[4];
+        std::vector<std::string> positionalArgs;
+        positionalArgs.reserve(static_cast<std::size_t>(argc - 3));
+        std::vector<std::string> providedOptions;
+        providedOptions.reserve(static_cast<std::size_t>(argc - 3));
+
+        for (int index = 3; index < argc; ++index) {
+            const std::string argument = argv[index];
+            providedOptions.emplace_back(argument);
+            if (argument == "--profile") {
+                continue;
+            }
+
+            positionalArgs.emplace_back(argument);
+        }
+
+        const bool profile = hasProfileFlag(providedOptions);
+
+        if (positionalArgs.size() != 2) {
+            std::cout << "Usage: dslc scanner generate [--profile] <regex-file> <output-file>" << std::endl;
+            return -1;
+        }
+
+        const std::filesystem::path regexFilePath = positionalArgs[0];
+        const std::filesystem::path outputFilePath = positionalArgs[1];
 
         try {
             const std::vector<std::string> expressions = loadRegexExpressions(regexFilePath);
@@ -80,7 +106,10 @@ int runScanner(const int argc, const char** argv) {
             }
 
             scanner::Generator generator;
+            generator.setProfilingEnabled(profile);
             const scanner::DFA dfa = generator.generateScanner(expressions);
+            generator.printStatistics(std::cout);
+
             scanner::DFASerializer::serialize(dfa, outputFilePath);
         } catch (const std::exception& error) {
             std::cerr << "Failed to generate scanner: " << error.what() << std::endl;
