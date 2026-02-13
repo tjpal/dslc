@@ -1,6 +1,7 @@
 module;
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <stdexcept>
 #include <unordered_set>
@@ -20,6 +21,22 @@ namespace scanner {
             }
 
             states.insert(state);
+        }
+
+        bool tryAddState(std::uint32_t state) {
+            if (isLocked) {
+                throw std::runtime_error("Cannot add state to locked StateSet");
+            }
+
+            return states.insert(state).second;
+        }
+
+        void reserve(const std::size_t expectedStateCount) {
+            if (isLocked) {
+                throw std::runtime_error("Cannot reserve locked StateSet");
+            }
+
+            states.reserve(expectedStateCount);
         }
 
         bool contains(std::uint32_t state) const {

@@ -16,7 +16,7 @@ namespace scanner {
             : epsilonTransition(false), characters(characters), endpointNodeID(endpointNodeID) {}
 
         bool isEpsilonTransition() const { return epsilonTransition; }
-        std::vector<char> getCharacter() const { return characters; }
+        const std::vector<char>& getCharacter() const { return characters; }
         bool matchesAnySymbol() const { return matchesAnySymbolFlag; }
         std::uint32_t getEndpointID() const { return endpointNodeID; }
 
