@@ -25,6 +25,7 @@ target_sources(
     regex/Union.cppm
     regex/RegexNodeVisitor.cppm
     parser/RegexParser.cppm
+    generator/GenerationStatistics.cppm
     generator/Generator.cppm
     generator/nfa/MergedNFA.cppm
     generator/nfa/NFANode.cppm
