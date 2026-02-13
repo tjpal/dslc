@@ -1,7 +1,11 @@
 module;
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <memory>
-#include <stack>
+#include <ranges>
+#include <utility>
 #include <vector>
 #include <stdexcept>
 
@@ -9,23 +13,25 @@ export module Scanner.ThompsonConstructionVisitor;
 
 import Scanner.NFA;
 import Scanner.Regex;
+import Scanner.GenerationStatistics;
 
 namespace scanner {
     export class ThompsonConstructionVisitor final : public RegexNodeVisitor {
     public:
-        explicit ThompsonConstructionVisitor(NFANodeFactory& nodeFactory) : nodeFactory(nodeFactory) {}
+        explicit ThompsonConstructionVisitor(NFANodeFactory& nodeFactory, GenerationStatistics* statistics = nullptr)
+            : nodeFactory(nodeFactory), statistics(statistics) {}
 
         void visit(Leaf& leaf) override {
             auto start = nodeFactory.createNode();
             auto end = nodeFactory.createNode();
 
             if (leaf.isWildcard()) {
-                start.addEdge(NFAEdge::wildcard(end.getNodeID()));
+                addEdgeTimed(start, NFAEdge::wildcard(end.getNodeID()));
             } else {
-                start.addEdge(NFAEdge(end.getNodeID(), leaf.getCharacters()));
+                addEdgeTimed(start, NFAEdge(end.getNodeID(), leaf.getCharacters()));
             }
 
-            nfaStack.emplace(NFA(start, {std::move(start), std::move(end)}, end));
+            nfaStack.emplace_back(NFA(start, {std::move(start), std::move(end)}, end));
         }
 
         void visit(Concatenation& concatenation) override {
@@ -35,12 +41,14 @@ namespace scanner {
             auto right = popNFA();
             auto left = popNFA();
 
-            left.getAcceptingNode().addEdge(NFAEdge::epsilon(right.getStartNodeID()));
+            addEdgeTimed(getAcceptingNodeTimed(left), NFAEdge::epsilon(right.getStartNodeID()));
+            const std::uint32_t leftStartNodeID = left.getStartNodeID();
+            const std::uint32_t rightAcceptingNodeID = right.getAcceptingNodeID();
 
-            nfaStack.emplace(
-                left.getStartNode(),
-                mergeNodes(left, right, {}),
-                right.getAcceptingNode()
+            nfaStack.emplace_back(
+                leftStartNodeID,
+                mergeNodes(std::move(left), std::move(right)),
+                rightAcceptingNodeID
             );
         }
 
@@ -50,18 +58,20 @@ namespace scanner {
             auto child = popNFA();
             auto start = nodeFactory.createNode();
             auto end = nodeFactory.createNode();
+            const std::uint32_t startNodeID = start.getNodeID();
+            const std::uint32_t endNodeID = end.getNodeID();
 
-            start.addEdge(NFAEdge::epsilon(end.getNodeID()));
-            start.addEdge(NFAEdge::epsilon(child.getStartNodeID()));
+            addEdgeTimed(start, NFAEdge::epsilon(end.getNodeID()));
+            addEdgeTimed(start, NFAEdge::epsilon(child.getStartNodeID()));
 
-            auto& childEnd = child.getAcceptingNode();
-            childEnd.addEdge(NFAEdge::epsilon(end.getNodeID()));
-            childEnd.addEdge(NFAEdge::epsilon(start.getNodeID()));
+            auto& childEnd = getAcceptingNodeTimed(child);
+            addEdgeTimed(childEnd, NFAEdge::epsilon(end.getNodeID()));
+            addEdgeTimed(childEnd, NFAEdge::epsilon(start.getNodeID()));
 
-            nfaStack.emplace(
-                start,
-                mergeNodes(child, NFA(), {start, end}),
-                end
+            nfaStack.emplace_back(
+                startNodeID,
+                mergeNodes(std::move(child), NFA(), std::move(start), std::move(end)),
+                endNodeID
             );
         }
 
@@ -71,17 +81,19 @@ namespace scanner {
             auto child = popNFA();
             auto start = nodeFactory.createNode();
             auto end = nodeFactory.createNode();
+            const std::uint32_t startNodeID = start.getNodeID();
+            const std::uint32_t endNodeID = end.getNodeID();
 
-            start.addEdge(NFAEdge::epsilon(child.getStartNodeID()));
+            addEdgeTimed(start, NFAEdge::epsilon(child.getStartNodeID()));
 
-            auto& childEnd = child.getAcceptingNode();
-            childEnd.addEdge(NFAEdge::epsilon(end.getNodeID()));
-            childEnd.addEdge(NFAEdge::epsilon(start.getNodeID()));
+            auto& childEnd = getAcceptingNodeTimed(child);
+            addEdgeTimed(childEnd, NFAEdge::epsilon(end.getNodeID()));
+            addEdgeTimed(childEnd, NFAEdge::epsilon(start.getNodeID()));
 
-            nfaStack.emplace(
-                start,
-                mergeNodes(child, NFA(), {start, end}),
-                end
+            nfaStack.emplace_back(
+                startNodeID,
+                mergeNodes(std::move(child), NFA(), std::move(start), std::move(end)),
+                endNodeID
             );
         }
 
@@ -89,10 +101,10 @@ namespace scanner {
             optional.getOptionalNode()->accept(*this);
             NFA child = popNFA();
 
-            auto& start = child.getStartNode();
-            start.addEdge(NFAEdge::epsilon(child.getAcceptingNodeID()));
+            auto& start = getStartNodeTimed(child);
+            addEdgeTimed(start, NFAEdge::epsilon(child.getAcceptingNodeID()));
 
-            nfaStack.push(std::move(child));
+            nfaStack.push_back(std::move(child));
         }
 
         void visit(Union& unionElement) override {
@@ -103,17 +115,23 @@ namespace scanner {
             auto left = popNFA();
 
             auto start = nodeFactory.createNode();
-            start.addEdge(NFAEdge::epsilon(left.getStartNodeID()));
-            start.addEdge(NFAEdge::epsilon(right.getStartNodeID()));
+            addEdgeTimed(start, NFAEdge::epsilon(left.getStartNodeID()));
+            addEdgeTimed(start, NFAEdge::epsilon(right.getStartNodeID()));
+            const std::uint32_t startNodeID = start.getNodeID();
 
             auto end = nodeFactory.createNode();
-            auto& leftAcceptingNode = left.getAcceptingNode();
-            auto& rightAcceptingNode = right.getAcceptingNode();
+            const std::uint32_t endNodeID = end.getNodeID();
+            auto& leftAcceptingNode = getAcceptingNodeTimed(left);
+            auto& rightAcceptingNode = getAcceptingNodeTimed(right);
 
-            leftAcceptingNode.addEdge(NFAEdge::epsilon(end.getNodeID()));
-            rightAcceptingNode.addEdge(NFAEdge::epsilon(end.getNodeID()));
+            addEdgeTimed(leftAcceptingNode, NFAEdge::epsilon(end.getNodeID()));
+            addEdgeTimed(rightAcceptingNode, NFAEdge::epsilon(end.getNodeID()));
 
-            nfaStack.push(NFA(start, mergeNodes(left, right, {start, end}), end));
+            nfaStack.emplace_back(
+                startNodeID,
+                mergeNodes(std::move(left), std::move(right), std::move(start), std::move(end)),
+                endNodeID
+            );
         }
 
         const NFA& getConstructedNFA() const {
@@ -121,7 +139,7 @@ namespace scanner {
                 throw std::runtime_error("No unique final NFA found");
             }
 
-            return nfaStack.top();
+            return nfaStack.back();
         }
 
         NFA&& moveConstructedNFA() {
@@ -129,7 +147,7 @@ namespace scanner {
                 throw std::runtime_error("No unique final NFA found");
             }
 
-            return std::move(nfaStack.top());
+            return std::move(nfaStack.back());
         }
 
     private:
@@ -138,26 +156,83 @@ namespace scanner {
                 throw std::runtime_error("NFA stack is empty");
             }
 
-            NFA result = std::move(nfaStack.top());
-            nfaStack.pop();
+            NFA result = std::move(nfaStack.back());
+            nfaStack.pop_back();
 
             return result;
         }
 
-        static std::vector<NFANode> mergeNodes(const NFA& first, const NFA& second, const std::vector<NFANode>& other) {
-            std::vector<NFANode> result;
+        std::vector<NFANode> mergeNodes(NFA&& first, NFA&& second) {
+            return mergeNodes(std::move(first), std::move(second), 0);
+        }
 
-            result.reserve(first.getNodes().size() + second.getNodes().size() + other.size());
+        std::vector<NFANode> mergeNodes(NFA&& first, NFA&& second, NFANode&& extraFirst, NFANode&& extraSecond) {
+            auto result = mergeNodes(std::move(first), std::move(second), 2);
+            result.push_back(std::move(extraFirst));
+            result.push_back(std::move(extraSecond));
+            return result;
+        }
 
-            std::ranges::copy(first.getNodes(), std::back_inserter(result));
-            std::ranges::copy(second.getNodes(), std::back_inserter(result));
-            std::ranges::copy(other, std::back_inserter(result));
+        std::vector<NFANode> mergeNodes(NFA&& first, NFA&& second, const std::size_t additionalNodeCount) {
+            if (statistics != nullptr) {
+                statistics->startThompsonMergeNodes();
+            }
 
-            return std::move(result);
+            std::vector<NFANode> result = first.takeNodes();
+            std::vector<NFANode> secondNodes = second.takeNodes();
+            result.reserve(result.size() + secondNodes.size() + additionalNodeCount);
+            std::ranges::move(secondNodes, std::back_inserter(result));
+
+            if (statistics != nullptr) {
+                statistics->endThompsonMergeNodes();
+            }
+
+            return result;
         }
 
         NFANodeFactory& nodeFactory;
-        std::stack<NFA> nfaStack;
+        GenerationStatistics* statistics = nullptr;
+        std::vector<NFA> nfaStack;
+
+        void addEdgeTimed(NFANode& node, const NFAEdge& edge) const {
+            if (statistics != nullptr) {
+                statistics->startThompsonEdgeAdd();
+            }
+
+            node.addEdge(edge);
+
+            if (statistics != nullptr) {
+                statistics->endThompsonEdgeAdd();
+            }
+        }
+
+        NFANode& getAcceptingNodeTimed(NFA& nfa) const {
+            if (statistics != nullptr) {
+                statistics->startThompsonNodeLookup();
+            }
+
+            auto& result = nfa.getAcceptingNode();
+
+            if (statistics != nullptr) {
+                statistics->endThompsonNodeLookup();
+            }
+
+            return result;
+        }
+
+        NFANode& getStartNodeTimed(NFA& nfa) const {
+            if (statistics != nullptr) {
+                statistics->startThompsonNodeLookup();
+            }
+
+            auto& result = nfa.getStartNode();
+
+            if (statistics != nullptr) {
+                statistics->endThompsonNodeLookup();
+            }
+
+            return result;
+        }
     };
 
 } // namespace scanner
