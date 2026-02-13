@@ -18,6 +18,10 @@ namespace scanner {
             }
         }
 
+        [[nodiscard]] bool isEnabled() const {
+            return enabled;
+        }
+
         void reset() {
             parsingDuration = Duration::zero();
             regexToNfaDuration = Duration::zero();
@@ -32,11 +36,15 @@ namespace scanner {
             thompsonEdgeAddDuration = Duration::zero();
             mergeNfaDuration = Duration::zero();
             powerSetConversionDuration = Duration::zero();
+            powerSetAlphabetCollectionDuration = Duration::zero();
+            powerSetMainLoopDuration = Duration::zero();
             parsedRegexCount = 0;
             regexToNfaCount = 0;
             thompsonMergeNodesCount = 0;
             thompsonNodeLookupCount = 0;
             thompsonEdgeAddCount = 0;
+            powerSetSubsetCount = 0;
+            powerSetTransitionCount = 0;
             parsingStart.reset();
             regexToNfaStart.reset();
             nfaToDfaStart.reset();
@@ -252,6 +260,38 @@ namespace scanner {
             powerSetConversionStart.reset();
         }
 
+        void setPowerSetAlphabetCollectionDuration(const Duration duration) {
+            if (!enabled) {
+                return;
+            }
+
+            powerSetAlphabetCollectionDuration = duration;
+        }
+
+        void setPowerSetMainLoopDuration(const Duration duration) {
+            if (!enabled) {
+                return;
+            }
+
+            powerSetMainLoopDuration = duration;
+        }
+
+        void setPowerSetSubsetCount(const std::size_t count) {
+            if (!enabled) {
+                return;
+            }
+
+            powerSetSubsetCount = count;
+        }
+
+        void setPowerSetTransitionCount(const std::size_t count) {
+            if (!enabled) {
+                return;
+            }
+
+            powerSetTransitionCount = count;
+        }
+
         Duration getParsingDuration() const {
             return parsingDuration;
         }
@@ -324,6 +364,22 @@ namespace scanner {
             return powerSetConversionDuration;
         }
 
+        Duration getPowerSetAlphabetCollectionDuration() const {
+            return powerSetAlphabetCollectionDuration;
+        }
+
+        Duration getPowerSetMainLoopDuration() const {
+            return powerSetMainLoopDuration;
+        }
+
+        std::size_t getPowerSetSubsetCount() const {
+            return powerSetSubsetCount;
+        }
+
+        std::size_t getPowerSetTransitionCount() const {
+            return powerSetTransitionCount;
+        }
+
     private:
         using Clock = std::chrono::steady_clock;
 
@@ -356,10 +412,14 @@ namespace scanner {
         Duration thompsonEdgeAddDuration = Duration::zero();
         Duration mergeNfaDuration = Duration::zero();
         Duration powerSetConversionDuration = Duration::zero();
+        Duration powerSetAlphabetCollectionDuration = Duration::zero();
+        Duration powerSetMainLoopDuration = Duration::zero();
         std::size_t parsedRegexCount = 0;
         std::size_t regexToNfaCount = 0;
         std::size_t thompsonMergeNodesCount = 0;
         std::size_t thompsonNodeLookupCount = 0;
         std::size_t thompsonEdgeAddCount = 0;
+        std::size_t powerSetSubsetCount = 0;
+        std::size_t powerSetTransitionCount = 0;
     };
 }

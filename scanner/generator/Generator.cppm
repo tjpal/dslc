@@ -70,6 +70,12 @@ namespace scanner {
             output << "  NFA -> DFA: " << toMilliseconds(statistics.getNfaToDfaDuration()) << " ms\n";
             output << "    Merge NFAs: " << toMicroseconds(statistics.getMergeNfaDuration()) << " us\n";
             output << "    Powerset conversion: " << toMicroseconds(statistics.getPowerSetConversionDuration()) << " us\n";
+            output << "      Alphabet collection: "
+                   << toMicroseconds(statistics.getPowerSetAlphabetCollectionDuration()) << " us\n";
+            output << "      Main loop: "
+                   << toMicroseconds(statistics.getPowerSetMainLoopDuration()) << " us\n";
+            output << "      DFA subsets: " << statistics.getPowerSetSubsetCount() << "\n";
+            output << "      DFA transitions: " << statistics.getPowerSetTransitionCount() << "\n";
         }
 
         DFA generateScanner(const std::string& regex) {
@@ -92,7 +98,7 @@ namespace scanner {
             const NFA& constructedNFA = visitor.getConstructedNFA();
             statistics.startNfaToDfa();
             statistics.startPowerSetConversion();
-            DFA dfa = PowerSetConstruction::convert(constructedNFA);
+            DFA dfa = PowerSetConstruction::convert(constructedNFA, &statistics);
             statistics.endPowerSetConversion();
             statistics.endNfaToDfa();
             return dfa;
@@ -131,7 +137,7 @@ namespace scanner {
             MergedNFA mergedNFA(nfas, nodeFactory);
             statistics.endMergeNfa();
             statistics.startPowerSetConversion();
-            DFA dfa = PowerSetConstruction::convert(mergedNFA);
+            DFA dfa = PowerSetConstruction::convert(mergedNFA, &statistics);
             statistics.endPowerSetConversion();
             statistics.endNfaToDfa();
 
