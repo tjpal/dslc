@@ -24,7 +24,7 @@ namespace scanner {
         }
 
         long long toMicroseconds(const GenerationStatistics::Duration duration) {
-            return duration.count();
+            return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
         }
     } // namespace
 
@@ -59,6 +59,12 @@ namespace scanner {
             output << "    Thompson calls (" << statistics.getRegexToNfaCount() << "): "
                    << toMicroseconds(statistics.getRegexToNfaRegexDuration()) << " us";
             output << " [max " << toMicroseconds(statistics.getRegexToNfaLongestRegexDuration()) << " us]\n";
+            output << "    Thompson mergeNodes (" << statistics.getThompsonMergeNodesCount() << "): "
+                   << toMicroseconds(statistics.getThompsonMergeNodesDuration()) << " us\n";
+            output << "    Thompson node lookups (" << statistics.getThompsonNodeLookupCount() << "): "
+                   << toMicroseconds(statistics.getThompsonNodeLookupDuration()) << " us\n";
+            output << "    Thompson edge additions (" << statistics.getThompsonEdgeAddCount() << "): "
+                   << toMicroseconds(statistics.getThompsonEdgeAddDuration()) << " us\n";
             output << "    NFA materialization: "
                    << toMicroseconds(statistics.getRegexToNfaMaterializationDuration()) << " us\n";
             output << "  NFA -> DFA: " << toMilliseconds(statistics.getNfaToDfaDuration()) << " ms\n";
@@ -77,7 +83,7 @@ namespace scanner {
             statistics.endParsing();
 
             statistics.startRegexToNfa();
-            ThompsonConstructionVisitor visitor(nodeFactory);
+            ThompsonConstructionVisitor visitor(nodeFactory, &statistics);
             statistics.startRegexToNfaRegex();
             regexTree->accept(visitor);
             statistics.endRegexToNfaRegex();
@@ -110,7 +116,7 @@ namespace scanner {
             std::vector<NFA> nfas;
             statistics.startRegexToNfa();
             for (const auto& regexNode : regexNodes) {
-                ThompsonConstructionVisitor visitor(nodeFactory);
+                ThompsonConstructionVisitor visitor(nodeFactory, &statistics);
                 statistics.startRegexToNfaRegex();
                 regexNode->accept(visitor);
                 statistics.endRegexToNfaRegex();

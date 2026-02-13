@@ -9,7 +9,7 @@ export module Scanner.GenerationStatistics;
 namespace scanner {
     export class GenerationStatistics {
     public:
-        using Duration = std::chrono::microseconds;
+        using Duration = std::chrono::nanoseconds;
 
         void setEnabled(const bool shouldCollect) {
             enabled = shouldCollect;
@@ -27,16 +27,25 @@ namespace scanner {
             regexToNfaRegexDuration = Duration::zero();
             regexToNfaLongestRegexDuration = Duration::zero();
             regexToNfaMaterializationDuration = Duration::zero();
+            thompsonMergeNodesDuration = Duration::zero();
+            thompsonNodeLookupDuration = Duration::zero();
+            thompsonEdgeAddDuration = Duration::zero();
             mergeNfaDuration = Duration::zero();
             powerSetConversionDuration = Duration::zero();
             parsedRegexCount = 0;
             regexToNfaCount = 0;
+            thompsonMergeNodesCount = 0;
+            thompsonNodeLookupCount = 0;
+            thompsonEdgeAddCount = 0;
             parsingStart.reset();
             regexToNfaStart.reset();
             nfaToDfaStart.reset();
             parsingRegexStart.reset();
             regexToNfaRegexStart.reset();
             regexToNfaMaterializationStart.reset();
+            thompsonMergeNodesStart.reset();
+            thompsonNodeLookupStart.reset();
+            thompsonEdgeAddStart.reset();
             mergeNfaStart.reset();
             powerSetConversionStart.reset();
         }
@@ -155,6 +164,60 @@ namespace scanner {
             regexToNfaMaterializationStart.reset();
         }
 
+        void startThompsonMergeNodes() {
+            if (!enabled) {
+                return;
+            }
+
+            thompsonMergeNodesStart = Clock::now();
+        }
+
+        void endThompsonMergeNodes() {
+            if (!enabled || !thompsonMergeNodesStart.has_value()) {
+                return;
+            }
+
+            thompsonMergeNodesDuration += elapsedDuration(thompsonMergeNodesStart.value());
+            ++thompsonMergeNodesCount;
+            thompsonMergeNodesStart.reset();
+        }
+
+        void startThompsonNodeLookup() {
+            if (!enabled) {
+                return;
+            }
+
+            thompsonNodeLookupStart = Clock::now();
+        }
+
+        void endThompsonNodeLookup() {
+            if (!enabled || !thompsonNodeLookupStart.has_value()) {
+                return;
+            }
+
+            thompsonNodeLookupDuration += elapsedDuration(thompsonNodeLookupStart.value());
+            ++thompsonNodeLookupCount;
+            thompsonNodeLookupStart.reset();
+        }
+
+        void startThompsonEdgeAdd() {
+            if (!enabled) {
+                return;
+            }
+
+            thompsonEdgeAddStart = Clock::now();
+        }
+
+        void endThompsonEdgeAdd() {
+            if (!enabled || !thompsonEdgeAddStart.has_value()) {
+                return;
+            }
+
+            thompsonEdgeAddDuration += elapsedDuration(thompsonEdgeAddStart.value());
+            ++thompsonEdgeAddCount;
+            thompsonEdgeAddStart.reset();
+        }
+
         void startMergeNfa() {
             if (!enabled) {
                 return;
@@ -229,6 +292,30 @@ namespace scanner {
             return regexToNfaMaterializationDuration;
         }
 
+        Duration getThompsonMergeNodesDuration() const {
+            return thompsonMergeNodesDuration;
+        }
+
+        std::size_t getThompsonMergeNodesCount() const {
+            return thompsonMergeNodesCount;
+        }
+
+        Duration getThompsonNodeLookupDuration() const {
+            return thompsonNodeLookupDuration;
+        }
+
+        std::size_t getThompsonNodeLookupCount() const {
+            return thompsonNodeLookupCount;
+        }
+
+        Duration getThompsonEdgeAddDuration() const {
+            return thompsonEdgeAddDuration;
+        }
+
+        std::size_t getThompsonEdgeAddCount() const {
+            return thompsonEdgeAddCount;
+        }
+
         Duration getMergeNfaDuration() const {
             return mergeNfaDuration;
         }
@@ -251,6 +338,9 @@ namespace scanner {
         std::optional<Clock::time_point> parsingRegexStart;
         std::optional<Clock::time_point> regexToNfaRegexStart;
         std::optional<Clock::time_point> regexToNfaMaterializationStart;
+        std::optional<Clock::time_point> thompsonMergeNodesStart;
+        std::optional<Clock::time_point> thompsonNodeLookupStart;
+        std::optional<Clock::time_point> thompsonEdgeAddStart;
         std::optional<Clock::time_point> mergeNfaStart;
         std::optional<Clock::time_point> powerSetConversionStart;
         Duration parsingDuration = Duration::zero();
@@ -261,9 +351,15 @@ namespace scanner {
         Duration regexToNfaRegexDuration = Duration::zero();
         Duration regexToNfaLongestRegexDuration = Duration::zero();
         Duration regexToNfaMaterializationDuration = Duration::zero();
+        Duration thompsonMergeNodesDuration = Duration::zero();
+        Duration thompsonNodeLookupDuration = Duration::zero();
+        Duration thompsonEdgeAddDuration = Duration::zero();
         Duration mergeNfaDuration = Duration::zero();
         Duration powerSetConversionDuration = Duration::zero();
         std::size_t parsedRegexCount = 0;
         std::size_t regexToNfaCount = 0;
+        std::size_t thompsonMergeNodesCount = 0;
+        std::size_t thompsonNodeLookupCount = 0;
+        std::size_t thompsonEdgeAddCount = 0;
     };
 }

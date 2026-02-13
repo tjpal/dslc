@@ -4,6 +4,7 @@ module;
 #include <limits>
 #include <ranges>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 export module Scanner.NFA;
@@ -17,8 +18,14 @@ namespace scanner {
     public:
         NFA() = default;
         NFA(NFA&& other) noexcept = default;
+        NFA(std::uint32_t startNodeID, std::vector<NFANode>&& nodes, std::uint32_t acceptingNodeID) noexcept :
+            nodes(std::move(nodes)),
+            startNodeID(startNodeID),
+            acceptingNodeID(acceptingNodeID) {
+        }
+
         NFA(const NFANode& startNode, std::vector<NFANode>&& nodes, const NFANode& acceptingNode) noexcept :
-            nodes(nodes),
+            nodes(std::move(nodes)),
             startNodeID(startNode.getNodeID()),
             acceptingNodeID(acceptingNode.getNodeID()) {
         }
@@ -123,6 +130,14 @@ namespace scanner {
 
         const std::vector<NFANode>& getNodes() const {
             return nodes;
+        }
+
+        std::vector<NFANode> takeNodes() {
+            if (isLocked) {
+                throw std::runtime_error("Cannot mutate locked NFA");
+            }
+
+            return std::move(nodes);
         }
 
         NFA& operator=(NFA&& other) noexcept = default;
