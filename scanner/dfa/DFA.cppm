@@ -41,12 +41,17 @@ namespace scanner {
             return state < acceptingStates.size() && acceptingStates[state].getIsAccepting();
         }
 
-        std::vector<std::uint32_t> getAcceptingIds(std::uint32_t state) const {
+        const std::vector<std::uint32_t>& getAcceptingIdsRef(std::uint32_t state) const {
+            static const std::vector<std::uint32_t> emptyIds;
             if (state >= acceptingStates.size()) {
-                return {};
+                return emptyIds;
             }
 
             return acceptingStates[state].getNfaIds();
+        }
+
+        std::vector<std::uint32_t> getAcceptingIds(std::uint32_t state) const {
+            return getAcceptingIdsRef(state);
         }
 
     private:
