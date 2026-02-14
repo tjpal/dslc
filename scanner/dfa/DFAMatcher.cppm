@@ -1,10 +1,11 @@
 module;
 
+#include <array>
 #include <cstddef>
-#include <optional>
+#include <cstdint>
+#include <limits>
 #include <set>
 #include <string>
-#include <unordered_map>
 #include <utility>
 
 export module Scanner.DFAMatcher;
@@ -16,17 +17,30 @@ namespace scanner {
     export class DFAMatcher final {
     public:
         explicit DFAMatcher(DFA inputDFA) : dfa(std::move(inputDFA)) {
+            symbolToIndex.fill(INVALID_SYMBOL_INDEX);
             const auto& alphabet = dfa.getAlphabet();
-            symbolToIndex.reserve(alphabet.size());
+
+            std::size_t anySymbolIndex = 0;
+            bool hasAnySymbol = false;
+            for (std::size_t index = 0; index < alphabet.size(); ++index) {
+                if (alphabet[index] == AnySymbol) {
+                    anySymbolIndex = index;
+                    hasAnySymbol = true;
+                    break;
+                }
+            }
+
+            if (hasAnySymbol) {
+                symbolToIndex.fill(static_cast<std::uint16_t>(anySymbolIndex));
+            }
 
             for (std::size_t index = 0; index < alphabet.size(); ++index) {
                 const char symbol = alphabet[index];
                 if (symbol == AnySymbol) {
-                    anySymbolIndex = index;
                     continue;
                 }
 
-                symbolToIndex.emplace(symbol, index);
+                symbolToIndex[static_cast<unsigned char>(symbol)] = static_cast<std::uint16_t>(index);
             }
         }
 
@@ -38,18 +52,12 @@ namespace scanner {
             std::size_t currentState = 0;
 
             for (const char symbol : input) {
-                const auto it = symbolToIndex.find(symbol);
-                if (it != symbolToIndex.end()) {
-                    currentState = static_cast<std::size_t>(dfa.getNextState(currentState, it->second));
-                    continue;
+                const auto symbolIndex = symbolToIndex[static_cast<unsigned char>(symbol)];
+                if (symbolIndex == INVALID_SYMBOL_INDEX) {
+                    return false;
                 }
 
-                if (anySymbolIndex.has_value()) {
-                    currentState = static_cast<std::size_t>(dfa.getNextState(currentState, *anySymbolIndex));
-                    continue;
-                }
-
-                return false;
+                currentState = static_cast<std::size_t>(dfa.getNextState(currentState, symbolIndex));
             }
 
             return dfa.isAcceptingState(currentState);
@@ -64,21 +72,16 @@ namespace scanner {
             std::size_t currentState = 0;
 
             for (const char symbol : input) {
-                std::optional<std::size_t> symbolIndex;
-                const auto it = symbolToIndex.find(symbol);
-                if (it != symbolToIndex.end()) {
-                    symbolIndex = it->second;
-                } else if (anySymbolIndex.has_value()) {
-                    symbolIndex = anySymbolIndex;
-                } else {
+                const auto symbolIndex = symbolToIndex[static_cast<unsigned char>(symbol)];
+                if (symbolIndex == INVALID_SYMBOL_INDEX) {
                     break;
                 }
 
-                currentState = static_cast<std::size_t>(dfa.getNextState(currentState, *symbolIndex));
+                currentState = static_cast<std::size_t>(dfa.getNextState(currentState, symbolIndex));
 
                 if (dfa.isAcceptingState(currentState)) {
-                    std::vector<std::uint32_t> ids = dfa.getAcceptingIds(currentState);
-                    acceptingIds.insert_range(ids);
+                    const auto& ids = dfa.getAcceptingIdsRef(currentState);
+                    acceptingIds.insert(ids.begin(), ids.end());
                 }
             }
 
@@ -86,8 +89,10 @@ namespace scanner {
         }
 
     private:
+        static constexpr std::size_t SYMBOL_TABLE_SIZE = 256;
+        static constexpr std::uint16_t INVALID_SYMBOL_INDEX = std::numeric_limits<std::uint16_t>::max();
+
         DFA dfa;
-        std::unordered_map<char, std::size_t> symbolToIndex;
-        std::optional<std::size_t> anySymbolIndex;
+        std::array<std::uint16_t, SYMBOL_TABLE_SIZE> symbolToIndex{};
     };
 } // namespace scanner
