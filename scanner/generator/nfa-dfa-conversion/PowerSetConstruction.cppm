@@ -183,6 +183,7 @@ namespace scanner {
                     }
 
                     if (edge.matchesAnySymbol()) {
+                        reachable.push_back(edge.getEndpointID());
                         continue;
                     }
 

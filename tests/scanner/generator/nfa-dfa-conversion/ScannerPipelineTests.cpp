@@ -137,3 +137,17 @@ TEST(ScannerPipelineTests, DotMatchesCharactersMissingFromAlphabet) {
     ExpectMatches(matcher, {"ab", "ax"});
     ExpectRejections(matcher, {"a", "abc"});
 }
+
+TEST(ScannerPipelineTests, DotMatchesCharactersPresentInAlphabet) {
+    auto matcher = BuildMatcherFromRegex("a.a");
+
+    ExpectMatches(matcher, {"aaa", "aba"});
+    ExpectRejections(matcher, {"aa", "aaaa"});
+}
+
+TEST(ScannerPipelineTests, MultipleDotsMatchCharacters) {
+    auto matcher = BuildMatcherFromRegex("a.a.*a");
+
+    ExpectMatches(matcher, {"abaa"});
+    ExpectRejections(matcher, {"aaa", "ababac"});
+}
