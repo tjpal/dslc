@@ -90,6 +90,7 @@ TEST(RegexParserCapturingGroups, ParsesUnnamedGroup) {
     const auto node = parser.parse("(a)");
     const auto group = asCapturingGroup(node);
     ASSERT_NE(nullptr, group);
+    EXPECT_EQ(1u, group->getGroupID());
     EXPECT_FALSE(group->getName().has_value());
 
     const auto leaf = asLeaf(group->getGroupNode());
@@ -104,6 +105,7 @@ TEST(RegexParserCapturingGroups, ParsesCapturingGroupAsQuantifiedAtom) {
 
     const auto group = asCapturingGroup(kleene->getKleeneNode());
     ASSERT_NE(nullptr, group);
+    EXPECT_EQ(1u, group->getGroupID());
     ASSERT_TRUE(group->getName().has_value());
     EXPECT_EQ("name", *group->getName());
 }
@@ -113,6 +115,7 @@ TEST(RegexParserCapturingGroups, ParsesNamedGroup) {
     const auto node = parser.parse("(?<name>a)");
     const auto group = asCapturingGroup(node);
     ASSERT_NE(nullptr, group);
+    EXPECT_EQ(1u, group->getGroupID());
     ASSERT_TRUE(group->getName().has_value());
     EXPECT_EQ("name", *group->getName());
 

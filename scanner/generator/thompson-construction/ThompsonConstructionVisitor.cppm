@@ -134,7 +134,32 @@ namespace scanner {
             );
         }
 
-        void visit(CapturingGroup& capturingGroup) override { capturingGroup.getGroupNode()->accept(*this); }
+        void visit(CapturingGroup& capturingGroup) override {
+            capturingGroup.getGroupNode()->accept(*this);
+
+            auto child = popNFA();
+            auto start = nodeFactory.createNode();
+            auto end = nodeFactory.createNode();
+            const std::uint32_t startNodeID = start.getNodeID();
+            const std::uint32_t endNodeID = end.getNodeID();
+
+            addEdgeTimed(
+                start,
+                NFAEdge::captureStart(child.getStartNodeID(), capturingGroup.getGroupID(), capturingGroup.getName())
+            );
+
+            auto& childEnd = getAcceptingNodeTimed(child);
+            addEdgeTimed(
+                childEnd,
+                NFAEdge::captureEnd(end.getNodeID(), capturingGroup.getGroupID(), capturingGroup.getName())
+            );
+
+            nfaStack.emplace_back(
+                startNodeID,
+                mergeNodes(std::move(child), NFA(), std::move(start), std::move(end)),
+                endNodeID
+            );
+        }
 
         const NFA& getConstructedNFA() const {
             if (nfaStack.size() != 1) {

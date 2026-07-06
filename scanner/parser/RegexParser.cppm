@@ -2,6 +2,7 @@ module;
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -18,6 +19,7 @@ namespace scanner {
         std::shared_ptr<RegexNode> parse(const std::string& input) {
             expression = input;
             position = 0;
+            nextCaptureGroupID = 1;
 
             if (expression.empty()) {
                 throw std::runtime_error("Regular expression cannot be empty");
@@ -37,6 +39,7 @@ namespace scanner {
 
         std::string expression;
         std::size_t position = 0;
+        std::uint32_t nextCaptureGroupID = 1;
 
         bool hasNext() const {
             return position < expression.size();
@@ -125,6 +128,7 @@ namespace scanner {
             }
 
             if (match('(')) {
+                const auto groupID = nextCaptureGroupID++;
                 const auto name = parseOptionalCapturingGroupName();
                 const auto nested = parseExpression();
                 if (!match(')')) {
@@ -132,10 +136,10 @@ namespace scanner {
                 }
 
                 if (name.has_value()) {
-                    return std::make_shared<CapturingGroup>(nested, *name);
+                    return std::make_shared<CapturingGroup>(nested, groupID, *name);
                 }
 
-                return std::make_shared<CapturingGroup>(nested);
+                return std::make_shared<CapturingGroup>(nested, groupID);
             }
 
             if (match('[')) {
