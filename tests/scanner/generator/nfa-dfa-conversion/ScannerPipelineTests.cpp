@@ -93,6 +93,13 @@ TEST(ScannerPipelineTests, ComplexRegexHandlesAbcOrDefRepeatedly) {
     ExpectRejections(matcher, {"ab", "abcde", "xyz", "abcdefg"});
 }
 
+TEST(ScannerPipelineTests, NamedCapturingGroupIsTransparentForMatching) {
+    auto matcher = BuildMatcherFromRegex("(?<prefix>abc|def)*123");
+
+    ExpectMatches(matcher, {"123", "abc123", "defabc123"});
+    ExpectRejections(matcher, {"ab", "abcde", "xyz"});
+}
+
 TEST(ScannerPipelineTests, Test2) {
     auto matcher = BuildMatcherFromRegex("(abc|def)*(x)?123");
 

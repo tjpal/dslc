@@ -7,6 +7,7 @@ namespace scanner {
     export class Kleene;
     export class Plus;
     export class Union;
+    export class CapturingGroup;
 
     export class RegexNodeVisitor {
     public:
@@ -18,5 +19,6 @@ namespace scanner {
         virtual void visit(Kleene& node) {}
         virtual void visit(Plus& node) {}
         virtual void visit(Union& node) {}
+        virtual void visit(CapturingGroup& node) {}
     };
 } // namespace scanner

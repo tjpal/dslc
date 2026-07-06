@@ -23,6 +23,7 @@ target_sources(
     regex/Leaf.cppm
     regex/Optional.cppm
     regex/Union.cppm
+    regex/CapturingGroup.cppm
     regex/RegexNodeVisitor.cppm
     parser/RegexParser.cppm
     generator/GenerationStatistics.cppm

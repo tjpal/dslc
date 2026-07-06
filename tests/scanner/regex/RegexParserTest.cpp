@@ -21,6 +21,14 @@ std::shared_ptr<scanner::Plus> asPlus(const std::shared_ptr<scanner::RegexNode>&
     return std::dynamic_pointer_cast<scanner::Plus>(node);
 }
 
+std::shared_ptr<scanner::Kleene> asKleene(const std::shared_ptr<scanner::RegexNode>& node) {
+    return std::dynamic_pointer_cast<scanner::Kleene>(node);
+}
+
+std::shared_ptr<scanner::CapturingGroup> asCapturingGroup(const std::shared_ptr<scanner::RegexNode>& node) {
+    return std::dynamic_pointer_cast<scanner::CapturingGroup>(node);
+}
+
 } // namespace
 
 TEST(RegexParserPredefinedCharacterClasses, ParsesDigitClassIntoLeaf) {
@@ -75,4 +83,39 @@ TEST(RegexParserQuantifiers, ParsesPlusAsOneOrMoreOperator) {
     const auto& characters = leaf->getCharacters();
     ASSERT_EQ(1u, characters.size());
     EXPECT_EQ('a', characters[0]);
+}
+
+TEST(RegexParserCapturingGroups, ParsesUnnamedGroup) {
+    scanner::RegexParser parser;
+    const auto node = parser.parse("(a)");
+    const auto group = asCapturingGroup(node);
+    ASSERT_NE(nullptr, group);
+    EXPECT_FALSE(group->getName().has_value());
+
+    const auto leaf = asLeaf(group->getGroupNode());
+    ASSERT_NE(nullptr, leaf);
+}
+
+TEST(RegexParserCapturingGroups, ParsesCapturingGroupAsQuantifiedAtom) {
+    scanner::RegexParser parser;
+    const auto node = parser.parse("(?<name>a)*");
+    const auto kleene = asKleene(node);
+    ASSERT_NE(nullptr, kleene);
+
+    const auto group = asCapturingGroup(kleene->getKleeneNode());
+    ASSERT_NE(nullptr, group);
+    ASSERT_TRUE(group->getName().has_value());
+    EXPECT_EQ("name", *group->getName());
+}
+
+TEST(RegexParserCapturingGroups, ParsesNamedGroup) {
+    scanner::RegexParser parser;
+    const auto node = parser.parse("(?<name>a)");
+    const auto group = asCapturingGroup(node);
+    ASSERT_NE(nullptr, group);
+    ASSERT_TRUE(group->getName().has_value());
+    EXPECT_EQ("name", *group->getName());
+
+    const auto leaf = asLeaf(group->getGroupNode());
+    ASSERT_NE(nullptr, leaf);
 }

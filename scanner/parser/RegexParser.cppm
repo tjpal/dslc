@@ -125,12 +125,17 @@ namespace scanner {
             }
 
             if (match('(')) {
+                const auto name = parseOptionalCapturingGroupName();
                 const auto nested = parseExpression();
                 if (!match(')')) {
                     throw std::runtime_error("Unmatched '");
                 }
 
-                return nested;
+                if (name.has_value()) {
+                    return std::make_shared<CapturingGroup>(nested, *name);
+                }
+
+                return std::make_shared<CapturingGroup>(nested);
             }
 
             if (match('[')) {
@@ -170,6 +175,32 @@ namespace scanner {
             }
 
             return get();
+        }
+
+        std::optional<std::string> parseOptionalCapturingGroupName() {
+            if (!hasNext() || peek() != '?') {
+                return std::nullopt;
+            }
+
+            ++position;
+            if (!match('<')) {
+                throw std::runtime_error("Expected '<' after '?' in capturing group");
+            }
+
+            std::string name;
+            while (hasNext() && peek() != '>') {
+                name.push_back(get());
+            }
+
+            if (!match('>')) {
+                throw std::runtime_error("Unterminated capturing group name");
+            }
+
+            if (name.empty()) {
+                throw std::runtime_error("Capturing group name cannot be empty");
+            }
+
+            return name;
         }
 
         std::shared_ptr<RegexNode> createLeaf(const std::vector<char>& characters) const {

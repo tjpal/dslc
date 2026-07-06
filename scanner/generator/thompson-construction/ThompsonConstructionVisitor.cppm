@@ -134,6 +134,8 @@ namespace scanner {
             );
         }
 
+        void visit(CapturingGroup& capturingGroup) override { capturingGroup.getGroupNode()->accept(*this); }
+
         const NFA& getConstructedNFA() const {
             if (nfaStack.size() != 1) {
                 throw std::runtime_error("No unique final NFA found");
