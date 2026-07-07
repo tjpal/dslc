@@ -322,9 +322,19 @@ namespace scanner {
         static DFACaptureAction toDFACaptureAction(const NFAEdge& edge) {
             switch (edge.getCaptureAction()) {
             case NFAEdge::CaptureAction::Start:
-                return {DFACaptureAction::Type::Start, edge.getCaptureGroupID(), edge.getCaptureGroupName()};
+                return {
+                    DFACaptureAction::Type::Start,
+                    edge.getCaptureRegexID(),
+                    edge.getCaptureGroupID(),
+                    edge.getCaptureGroupName()
+                };
             case NFAEdge::CaptureAction::End:
-                return {DFACaptureAction::Type::End, edge.getCaptureGroupID(), edge.getCaptureGroupName()};
+                return {
+                    DFACaptureAction::Type::End,
+                    edge.getCaptureRegexID(),
+                    edge.getCaptureGroupID(),
+                    edge.getCaptureGroupName()
+                };
             case NFAEdge::CaptureAction::None:
                 throw std::runtime_error("NFA edge does not have a capture action");
             }
@@ -338,6 +348,10 @@ namespace scanner {
         ) {
             for (const auto& existing : captureActions) {
                 if (existing.getType() != captureAction.getType()) {
+                    continue;
+                }
+
+                if (existing.getRegexID() != captureAction.getRegexID()) {
                     continue;
                 }
 

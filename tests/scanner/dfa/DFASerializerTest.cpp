@@ -1,6 +1,8 @@
 #include <filesystem>
 #include <fstream>
+#include <string>
 #include <system_error>
+#include <utility>
 #include <vector>
 
 #include <gmock/gmock.h>
@@ -8,7 +10,9 @@
 
 import Scanner.DFA;
 import Scanner.DFAAcceptingState;
+import Scanner.DFAMatcher;
 import Scanner.DFASerializer;
+import Scanner.Generator;
 
 using namespace scanner;
 
@@ -45,6 +49,29 @@ TEST(DFASerializerTest, RoundTripPreservesDFA) {
         EXPECT_EQ(deserialized.isAcceptingState(state), dfa.isAcceptingState(state));
         EXPECT_EQ(deserialized.getAcceptingIds(state), dfa.getAcceptingIds(state));
     }
+
+    std::filesystem::remove(filePath, ec);
+}
+
+TEST(DFASerializerTest, RoundTripPreservesCaptureActions) {
+    const std::filesystem::path filePath = "/tmp/dfa_serializer_capture_roundtrip.bin";
+    std::error_code ec;
+    std::filesystem::remove(filePath, ec);
+
+    Generator generator;
+    DFA dfa = generator.generateScanner("(?<name>a)");
+
+    DFASerializer::serialize(dfa, filePath);
+    DFA deserialized = DFASerializer::deserialize(filePath);
+
+    DFAMatcher matcher(std::move(deserialized));
+    const auto result = matcher.getMatches("a", true);
+    ASSERT_EQ(1u, result.getMatches().size());
+    const auto& captures = result.getMatches()[0].getCaptures();
+
+    ASSERT_TRUE(captures.contains("name"));
+    ASSERT_EQ(1u, captures.at("name").size());
+    EXPECT_EQ("a", captures.at("name")[0]);
 
     std::filesystem::remove(filePath, ec);
 }

@@ -121,14 +121,16 @@ namespace scanner {
 
             std::vector<NFA> nfas;
             statistics.startRegexToNfa();
+            std::uint32_t regexID = 0;
             for (const auto& regexNode : regexNodes) {
-                ThompsonConstructionVisitor visitor(nodeFactory, &statistics);
+                ThompsonConstructionVisitor visitor(nodeFactory, &statistics, regexID);
                 statistics.startRegexToNfaRegex();
                 regexNode->accept(visitor);
                 statistics.endRegexToNfaRegex();
                 statistics.startRegexToNfaMaterialization();
                 nfas.push_back(visitor.moveConstructedNFA());
                 statistics.endRegexToNfaMaterialization();
+                ++regexID;
             }
             statistics.endRegexToNfa();
 

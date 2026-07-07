@@ -18,8 +18,11 @@ import Scanner.GenerationStatistics;
 namespace scanner {
     export class ThompsonConstructionVisitor final : public RegexNodeVisitor {
     public:
-        explicit ThompsonConstructionVisitor(NFANodeFactory& nodeFactory, GenerationStatistics* statistics = nullptr)
-            : nodeFactory(nodeFactory), statistics(statistics) {}
+        explicit ThompsonConstructionVisitor(
+            NFANodeFactory& nodeFactory,
+            GenerationStatistics* statistics = nullptr,
+            std::uint32_t regexID = 0
+        ) : nodeFactory(nodeFactory), statistics(statistics), regexID(regexID) {}
 
         void visit(Leaf& leaf) override {
             auto start = nodeFactory.createNode();
@@ -145,13 +148,23 @@ namespace scanner {
 
             addEdgeTimed(
                 start,
-                NFAEdge::captureStart(child.getStartNodeID(), capturingGroup.getGroupID(), capturingGroup.getName())
+                NFAEdge::captureStart(
+                    child.getStartNodeID(),
+                    regexID,
+                    capturingGroup.getGroupID(),
+                    capturingGroup.getName()
+                )
             );
 
             auto& childEnd = getAcceptingNodeTimed(child);
             addEdgeTimed(
                 childEnd,
-                NFAEdge::captureEnd(end.getNodeID(), capturingGroup.getGroupID(), capturingGroup.getName())
+                NFAEdge::captureEnd(
+                    end.getNodeID(),
+                    regexID,
+                    capturingGroup.getGroupID(),
+                    capturingGroup.getName()
+                )
             );
 
             nfaStack.emplace_back(
@@ -219,6 +232,7 @@ namespace scanner {
 
         NFANodeFactory& nodeFactory;
         GenerationStatistics* statistics = nullptr;
+        std::uint32_t regexID = 0;
         std::vector<NFA> nfaStack;
 
         void addEdgeTimed(NFANode& node, const NFAEdge& edge) const {

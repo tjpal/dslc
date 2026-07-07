@@ -36,9 +36,9 @@ bool processInputFile(const scanner::DFAMatcher& matcher,
 
     while (std::getline(inputFile, line)) {
         ++lineNumber;
-        const auto matchedIds = matcher.getMatchingIDs(line);
+        const auto matches = matcher.getMatches(line);
 
-        if (!writeResultLine(resultsFile, lineNumber, matchedIds)) {
+        if (!writeResultLine(resultsFile, lineNumber, matches.getMatchingIDs())) {
             std::cerr << "Failed to write to results file: " << resultsPath << std::endl;
             return false;
         }

@@ -19,8 +19,12 @@ namespace scanner {
             End
         };
 
-        DFACaptureAction(Type type, std::uint32_t groupID, std::optional<std::string> name) :
-            type(type), groupID(groupID), name(std::move(name)) {}
+        DFACaptureAction(
+            Type type,
+            std::uint32_t regexID,
+            std::uint32_t groupID,
+            std::optional<std::string> name
+        ) : type(type), regexID(regexID), groupID(groupID), name(std::move(name)) {}
 
         Type getType() const {
             return type;
@@ -30,12 +34,17 @@ namespace scanner {
             return groupID;
         }
 
+        std::uint32_t getRegexID() const {
+            return regexID;
+        }
+
         const std::optional<std::string>& getName() const {
             return name;
         }
 
     private:
         Type type;
+        std::uint32_t regexID = 0;
         std::uint32_t groupID = 0;
         std::optional<std::string> name;
     };
