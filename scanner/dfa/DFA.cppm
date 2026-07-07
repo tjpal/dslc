@@ -2,6 +2,9 @@ module;
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
+#include <string>
+#include <utility>
 #include <vector>
 
 export module Scanner.DFA;
@@ -9,6 +12,34 @@ export module Scanner.DFA;
 import Scanner.DFAAcceptingState;
 
 namespace scanner {
+    export class DFACaptureAction final {
+    public:
+        enum class Type {
+            Start,
+            End
+        };
+
+        DFACaptureAction(Type type, std::uint32_t groupID, std::optional<std::string> name) :
+            type(type), groupID(groupID), name(std::move(name)) {}
+
+        Type getType() const {
+            return type;
+        }
+
+        std::uint32_t getGroupID() const {
+            return groupID;
+        }
+
+        const std::optional<std::string>& getName() const {
+            return name;
+        }
+
+    private:
+        Type type;
+        std::uint32_t groupID = 0;
+        std::optional<std::string> name;
+    };
+
     export class DFA {
     public:
         DFA() = default;
@@ -19,6 +50,16 @@ namespace scanner {
             transitionTable(transitionTable),
             acceptingStates(acceptingStates),
             alphabet(alphabet) {
+        }
+
+        DFA(const std::vector<std::vector<std::uint32_t>>& transitionTable,
+            const std::vector<DFAAcceptingState>& acceptingStates,
+            const std::vector<char>& alphabet,
+            const std::vector<std::vector<std::vector<DFACaptureAction>>>& transitionCaptureActions) noexcept :
+            transitionTable(transitionTable),
+            acceptingStates(acceptingStates),
+            alphabet(alphabet),
+            transitionCaptureActions(transitionCaptureActions) {
         }
 
         std::uint32_t getStateCount() const {
@@ -54,9 +95,22 @@ namespace scanner {
             return getAcceptingIdsRef(state);
         }
 
+        const std::vector<DFACaptureAction>& getCaptureActions(
+            std::uint32_t state,
+            std::uint32_t symbolIndex
+        ) const {
+            static const std::vector<DFACaptureAction> emptyActions;
+            if (state >= transitionCaptureActions.size() || symbolIndex >= transitionCaptureActions[state].size()) {
+                return emptyActions;
+            }
+
+            return transitionCaptureActions[state][symbolIndex];
+        }
+
     private:
         std::vector<std::vector<std::uint32_t>> transitionTable;
         std::vector<DFAAcceptingState> acceptingStates;
         std::vector<char> alphabet;
+        std::vector<std::vector<std::vector<DFACaptureAction>>> transitionCaptureActions;
     };
 } // namespace scanner

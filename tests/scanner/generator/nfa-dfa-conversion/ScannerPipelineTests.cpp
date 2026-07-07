@@ -3,9 +3,11 @@
 #include <initializer_list>
 #include <memory>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
+import Scanner.DFA;
 import Scanner.DFAMatcher;
 import Scanner.Generator;
 
@@ -19,6 +21,22 @@ scanner::DFAMatcher BuildMatcherFromRegex(const std::string& expression) {
 scanner::DFAMatcher BuildMatcherFromRegexes(const std::vector<std::string>& expressions) {
     scanner::Generator generator;
     return scanner::DFAMatcher(generator.generateScanner(expressions));
+}
+
+scanner::DFA BuildDFAFromRegex(const std::string& expression) {
+    scanner::Generator generator;
+    return generator.generateScanner(expression);
+}
+
+std::uint32_t GetSymbolIndex(const scanner::DFA& dfa, const char symbol) {
+    const auto& alphabet = dfa.getAlphabet();
+    for (std::uint32_t index = 0; index < alphabet.size(); ++index) {
+        if (alphabet[index] == symbol) {
+            return index;
+        }
+    }
+
+    throw std::runtime_error("Symbol not found in DFA alphabet");
 }
 
 void ExpectMatches(const scanner::DFAMatcher& matcher, const std::initializer_list<std::string>& inputs) {
@@ -98,6 +116,28 @@ TEST(ScannerPipelineTests, NamedCapturingGroupIsTransparentForMatching) {
 
     ExpectMatches(matcher, {"123", "abc123", "defabc123"});
     ExpectRejections(matcher, {"ab", "abcde", "xyz"});
+}
+
+TEST(ScannerPipelineTests, NamedCapturingGroupStoresDfaTransitionActions) {
+    auto dfa = BuildDFAFromRegex("(?<name>a)");
+    const auto symbolIndex = GetSymbolIndex(dfa, 'a');
+    const auto& actions = dfa.getCaptureActions(0, symbolIndex);
+
+    ASSERT_EQ(2u, actions.size());
+    EXPECT_EQ(scanner::DFACaptureAction::Type::Start, actions[0].getType());
+    EXPECT_EQ(1u, actions[0].getGroupID());
+    ASSERT_TRUE(actions[0].getName().has_value());
+    EXPECT_EQ("name", *actions[0].getName());
+
+    EXPECT_EQ(scanner::DFACaptureAction::Type::End, actions[1].getType());
+    EXPECT_EQ(1u, actions[1].getGroupID());
+    ASSERT_TRUE(actions[1].getName().has_value());
+    EXPECT_EQ("name", *actions[1].getName());
+}
+
+TEST(ScannerPipelineTests, ConflictingCaptureStartsThrowDuringGeneration) {
+    scanner::Generator generator;
+    EXPECT_THROW(generator.generateScanner("(?<left>a)|(?<right>a)"), std::runtime_error);
 }
 
 TEST(ScannerPipelineTests, Test2) {
