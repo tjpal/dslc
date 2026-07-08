@@ -1,8 +1,11 @@
+#include <algorithm>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <set>
 #include <string>
+#include <vector>
 
 import Scanner.DFASerializer;
 import Scanner.DFAMatcher;
@@ -11,8 +14,43 @@ scanner::DFAMatcher buildMatcher(const std::filesystem::path& dfaPath) {
     return scanner::DFAMatcher(scanner::DFASerializer::deserialize(dfaPath));
 }
 
-bool writeResultLine(std::ostream& resultsFile, std::size_t lineNumber, const std::set<std::uint32_t>& ids) {
-    resultsFile << lineNumber << ';';
+std::string escapeCaptureValue(const std::string& value) {
+    std::string escaped;
+    escaped.reserve(value.size());
+
+    for (const char symbol : value) {
+        switch (symbol) {
+        case '\\':
+            escaped += "\\\\";
+            break;
+        case ',':
+            escaped += "\\,";
+            break;
+        case ';':
+            escaped += "\\;";
+            break;
+        case ':':
+            escaped += "\\:";
+            break;
+        case '=':
+            escaped += "\\=";
+            break;
+        case '\n':
+            escaped += "\\n";
+            break;
+        case '\r':
+            escaped += "\\r";
+            break;
+        default:
+            escaped.push_back(symbol);
+            break;
+        }
+    }
+
+    return escaped;
+}
+
+void writeMatchingIDs(std::ostream& resultsFile, const std::set<std::uint32_t>& ids) {
     bool first = true;
 
     for (const auto id : ids) {
@@ -22,6 +60,37 @@ bool writeResultLine(std::ostream& resultsFile, std::size_t lineNumber, const st
         first = false;
         resultsFile << id;
     }
+}
+
+void writeCaptures(std::ostream& resultsFile, const std::vector<scanner::RegexMatchResult>& matches) {
+    bool first = true;
+
+    for (const auto& match : matches) {
+        const auto& captures = match.getCaptures();
+        std::vector<std::string> names;
+        names.reserve(captures.size());
+        for (const auto& [name, _] : captures) {
+            names.emplace_back(name);
+        }
+        std::sort(names.begin(), names.end());
+
+        for (const auto& name : names) {
+            for (const auto& value : captures.at(name)) {
+                if (!first) {
+                    resultsFile << ',';
+                }
+                first = false;
+                resultsFile << match.getRegexID() << ':' << name << '=' << escapeCaptureValue(value);
+            }
+        }
+    }
+}
+
+bool writeResultLine(std::ostream& resultsFile, std::size_t lineNumber, const scanner::MatchingResult& matches) {
+    resultsFile << lineNumber << ';';
+    writeMatchingIDs(resultsFile, matches.getMatchingIDs());
+    resultsFile << ';';
+    writeCaptures(resultsFile, matches.getMatches());
 
     resultsFile << '\n';
     return static_cast<bool>(resultsFile);
@@ -36,9 +105,9 @@ bool processInputFile(const scanner::DFAMatcher& matcher,
 
     while (std::getline(inputFile, line)) {
         ++lineNumber;
-        const auto matches = matcher.getMatches(line);
+        const auto matches = matcher.getMatches(line, true);
 
-        if (!writeResultLine(resultsFile, lineNumber, matches.getMatchingIDs())) {
+        if (!writeResultLine(resultsFile, lineNumber, matches)) {
             std::cerr << "Failed to write to results file: " << resultsPath << std::endl;
             return false;
         }
