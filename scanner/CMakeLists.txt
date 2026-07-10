@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_library(libscanner STATIC)
+set_target_properties(libscanner PROPERTIES EXPORT_NAME scanner)
+target_compile_features(libscanner PUBLIC cxx_std_26)
 
 target_sources(
     libscanner PUBLIC
@@ -37,4 +39,13 @@ target_sources(
     generator/nfa-dfa-conversion/StateSet.cppm
     generator/nfa-dfa-conversion/eClosure.cppm
     generator/nfa-dfa-conversion/PowerSetConstruction.cppm
+)
+
+install(
+    TARGETS libscanner
+    EXPORT dslcTargets
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    FILE_SET cxx_modules DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/dslc/modules"
+    CXX_MODULES_BMI DESTINATION "${CMAKE_INSTALL_LIBDIR}/dslc/modules"
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/dslc/modules"
 )

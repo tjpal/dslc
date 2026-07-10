@@ -27,5 +27,27 @@ cmake -G "Ninja" ..
 ninja -j $(nproc)
 ```
 
+## Installing and consuming the scanner library
+
+Install the scanner generator and its CMake package files with:
+
+```
+cmake -G "Ninja" -S . -B build
+cmake --build build
+cmake --install build --prefix /path/to/install
+```
+
+Another CMake project can then use the installed library as follows:
+
+```cmake
+find_package(dslc 1.0 CONFIG REQUIRED)
+target_link_libraries(your-target PRIVATE dslc::scanner)
+```
+
+Set `CMAKE_PREFIX_PATH` to `/path/to/install` when the installation prefix is
+not in CMake's default search paths. The package exports the scanner's C++
+modules, including `Scanner.Generator`; it does not install the `dslc` or
+`dslc-scanner` executables.
+
 ## Usage
 To be defined
