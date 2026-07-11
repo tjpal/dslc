@@ -27,6 +27,14 @@ cmake -G "Ninja" ..
 ninja -j $(nproc)
 ```
 
+On MacOS, the local clang installation will likely be outdated. In case you use a brew installation or your own build,
+use either the provided toolchain file or modify it to point to your own clang build.
+
+```bash
+cmake -G Ninja -S . -B build -DCMAKE_TOOLCHAIN_FILE=cmake/homebrew-llvm.cmake
+cmake --build build
+```
+
 ## Installing and consuming the scanner library
 
 Install the scanner generator and its CMake package files with:

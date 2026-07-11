@@ -1,5 +1,18 @@
 cmake_minimum_required(VERSION 3.30)
 
+if(CMAKE_HOST_APPLE AND NOT DEFINED CMAKE_OSX_SYSROOT)
+    execute_process(
+        COMMAND xcrun --sdk macosx --show-sdk-path
+        OUTPUT_VARIABLE MACOS_SDK_PATH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        RESULT_VARIABLE XCRUN_RESULT
+    )
+
+    if(XCRUN_RESULT EQUAL 0 AND MACOS_SDK_PATH)
+        set(CMAKE_OSX_SYSROOT "${MACOS_SDK_PATH}" CACHE PATH "macOS SDK path")
+    endif()
+endif()
+
 project(dslc VERSION 1.0)
 
 option(BUILD_TESTS "Build the tests" OFF)
